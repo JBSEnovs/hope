@@ -15,11 +15,16 @@ from agents.language import LanguageManager
 from agents.medication_reminder import MedicationReminder
 from agents.email_service import EmailService, mail
 from agents.reminder_scheduler import ReminderScheduler
+from functools import wraps
+from flask_cors import CORS
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
+# Enable CORS for all routes - this helps prevent CORS errors
+CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'temp_uploads')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev_secret_key_change_in_production')
@@ -28,6 +33,13 @@ app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev_secret_key_change_in_product
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
+# Custom unauthorized handler for Flask-Login
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Authentication required", "code": 401}), 401
+    return redirect(url_for('login'))
 
 # Configure Flask-Mail
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
@@ -129,9 +141,19 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-# Existing API routes with login_required
+# Custom decorator for API routes that handles unauthorized access
+def api_login_required(func):
+    """Custom decorator for API routes that returns JSON for unauthorized access"""
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return jsonify({"error": "Authentication required", "code": 401}), 401
+        return func(*args, **kwargs)
+    return decorated_view
+
+# Existing API routes with api_login_required instead of login_required
 @app.route('/api/diagnose', methods=['POST'])
-@login_required
+@api_login_required
 def diagnose():
     data = request.json
     symptoms = data.get('symptoms', '')
@@ -157,7 +179,7 @@ def diagnose():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/treatment', methods=['POST'])
-@login_required
+@api_login_required
 def treatment():
     data = request.json
     condition = data.get('condition', '')
@@ -183,7 +205,7 @@ def treatment():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/research', methods=['POST'])
-@login_required
+@api_login_required
 def research():
     data = request.json
     disease = data.get('disease', '')
@@ -209,7 +231,7 @@ def research():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/upload_document', methods=['POST'])
-@login_required
+@api_login_required
 def upload_document():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -244,7 +266,7 @@ def upload_document():
             return jsonify({"error": str(e)}), 500
 
 @app.route('/api/documents', methods=['GET'])
-@login_required
+@api_login_required
 def get_documents():
     try:
         documents = medical_agent.get_uploaded_documents()
@@ -274,22 +296,25 @@ def change_provider():
 @app.route('/api/providers', methods=['GET'])
 def providers():
     """Returns available providers and their default models"""
+    try:
+        blackbox_models = medical_agent.get_blackbox_models() or ["blackboxai"]
+    except Exception as e:
+        print(f"Error getting blackbox models: {e}")
+        blackbox_models = ["blackboxai"]
+        
     providers = {
         "openai": {
             "default_model": "gpt-4",
             "available_models": ["gpt-4", "gpt-3.5-turbo"]
         },
-        "cohere": {
-            "default_model": "command",
-            "available_models": ["command", "command-light", "command-nightly"]
-        },
+        # Removed cohere due to Python 3.13 compatibility issues
         "google": {
             "default_model": "gemini-1.0-pro",
             "available_models": ["gemini-1.0-pro", "gemini-1.5-pro"]
         },
         "blackbox": {
             "default_model": "blackboxai",
-            "available_models": medical_agent.get_blackbox_models()
+            "available_models": blackbox_models
         }
     }
     
@@ -942,6 +967,159 @@ def generate_medication_report():
             'success': False,
             'error': 'Failed to generate report or no medications found'
         }), 400
+
+# Health Analytics API Endpoints
+@app.route('/api/analytics/adherence', methods=['GET'])
+@login_required
+def get_adherence_analytics():
+    """Get adherence analytics data for the current user"""
+    user_id = current_user.get_id()
+    
+    try:
+        # Get adherence data from medication reminder
+        adherence_rate = medication_reminder.get_adherence_rate(user_id)
+        medications = medication_reminder.get_user_medications(user_id)
+        
+        # Calculate statistics
+        total_meds = len(medications)
+        taken_count = 0
+        missed_count = 0
+        
+        for med in medications:
+            history = med.get('history', [])
+            for event in history:
+                if event.get('status') == 'taken':
+                    taken_count += 1
+                elif event.get('status') == 'missed':
+                    missed_count += 1
+        
+        # Calculate upcoming doses (placeholder logic)
+        upcoming_count = total_meds * 2  # Simplified calculation
+        
+        return jsonify({
+            'success': True,
+            'adherence_rate': adherence_rate,
+            'statistics': {
+                'taken': taken_count,
+                'missed': missed_count,
+                'upcoming': upcoming_count,
+                'total_medications': total_meds
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/analytics/health_metrics', methods=['GET'])
+@login_required
+def get_health_metrics():
+    """Get health metrics data for the current user"""
+    user_id = current_user.get_id()
+    
+    try:
+        # This would normally fetch from a database
+        # Using placeholder data for now
+        metrics = {
+            'blood_pressure': [
+                {'date': '2025-01-01', 'value': 120},
+                {'date': '2025-02-01', 'value': 122},
+                {'date': '2025-03-01', 'value': 119},
+                {'date': '2025-04-01', 'value': 118},
+                {'date': '2025-05-01', 'value': 121},
+                {'date': '2025-06-01', 'value': 117}
+            ],
+            'blood_glucose': [
+                {'date': '2025-01-01', 'value': 95},
+                {'date': '2025-02-01', 'value': 97},
+                {'date': '2025-03-01', 'value': 94},
+                {'date': '2025-04-01', 'value': 98},
+                {'date': '2025-05-01', 'value': 92},
+                {'date': '2025-06-01', 'value': 95}
+            ],
+            'weight': [
+                {'date': '2025-01-01', 'value': 70},
+                {'date': '2025-02-01', 'value': 71},
+                {'date': '2025-03-01', 'value': 70.5},
+                {'date': '2025-04-01', 'value': 70},
+                {'date': '2025-05-01', 'value': 69},
+                {'date': '2025-06-01', 'value': 68.5}
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/analytics/health_activities', methods=['GET'])
+@login_required
+def get_health_activities():
+    """Get recent and upcoming health activities for the current user"""
+    user_id = current_user.get_id()
+    
+    try:
+        # Placeholder data - in a real app, this would come from a database
+        activities = [
+            {
+                'type': 'medication',
+                'title': 'Medication check-in',
+                'due_date': '2025-04-02',
+                'status': 'due_today'
+            },
+            {
+                'type': 'appointment',
+                'title': 'Doctor appointment',
+                'due_date': '2025-04-03',
+                'status': 'upcoming'
+            },
+            {
+                'type': 'assessment',
+                'title': 'Health assessment due',
+                'due_date': '2025-04-05',
+                'status': 'upcoming'
+            }
+        ]
+        
+        return jsonify({
+            'success': True,
+            'activities': activities
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.errorhandler(404)
+def not_found_error(error):
+    """Handle 404 errors"""
+    # Check if the request path starts with /api
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Not found", "code": 404}), 404
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    """Handle 500 errors"""
+    # Check if the request path starts with /api
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Internal server error", "code": 500}), 500
+    return render_template('500.html'), 500
+
+@app.errorhandler(401)
+def unauthorized_error(error):
+    """Handle 401 errors"""
+    # Check if the request path starts with /api
+    if request.path.startswith('/api/'):
+        return jsonify({"error": "Unauthorized", "code": 401}), 401
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True) 

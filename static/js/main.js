@@ -85,17 +85,25 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadDocuments() {
         try {
             const response = await fetch('/api/documents');
+            
+            // Check if the response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                console.error('Documents response is not JSON');
+                return;
+            }
+            
             const data = await response.json();
             
             if (data.documents && data.documents.length > 0) {
                 noDocumentsMessage.classList.add('d-none');
                 documentList.innerHTML = '';
                 
-                data.documents.forEach(document => {
-                    const item = document.create('a');
+                data.documents.forEach(docName => {
+                    const item = document.createElement('a');
                     item.href = '#';
                     item.className = 'list-group-item list-group-item-action';
-                    item.textContent = document;
+                    item.textContent = docName;
                     documentList.appendChild(item);
                 });
             } else {
@@ -104,6 +112,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Failed to load documents:', error);
+            noDocumentsMessage.textContent = 'Failed to load documents. Please try again later.';
+            noDocumentsMessage.classList.remove('d-none');
+            documentList.innerHTML = '';
         }
     }
     
@@ -332,10 +343,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
+                credentials: 'same-origin', // Include credentials for session cookies
                 body: JSON.stringify(data)
             });
 
+            // Check if the response is JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Response is not JSON. You may need to log in again.');
+            }
+
             const result = await response.json();
+            hideLoading();
             
             if (response.ok) {
                 displayResult(result.result);
@@ -351,7 +370,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 showError(result.error || 'An unexpected error occurred');
             }
         } catch (error) {
-            showError('Network error: ' + error.message);
+            hideLoading();
+            if (error.message.includes('JSON')) {
+                // This is likely a login issue
+                showError('Authentication error: Please log in to continue');
+                // Redirect to login after a delay
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+            } else {
+                showError('Network error: ' + error.message);
+            }
         }
     }
 
@@ -405,4 +434,125 @@ document.addEventListener('DOMContentLoaded', function() {
             include_visualization: includeVisualization
         });
     });
+
+    // Analytics Dashboard Functions
+    async function loadAnalyticsDashboard() {
+        try {
+            // Load adherence data
+            const adherenceResponse = await fetch('/api/analytics/adherence');
+            if (adherenceResponse.ok) {
+                const adherenceData = await adherenceResponse.json();
+                if (adherenceData.success) {
+                    updateAdherenceChart(adherenceData.statistics);
+                }
+            }
+            
+            // Load health metrics
+            const metricsResponse = await fetch('/api/analytics/health_metrics');
+            if (metricsResponse.ok) {
+                const metricsData = await metricsResponse.json();
+                if (metricsData.success) {
+                    updateHealthMetricsChart(metricsData.metrics);
+                }
+            }
+            
+            // Load health activities
+            const activitiesResponse = await fetch('/api/analytics/health_activities');
+            if (activitiesResponse.ok) {
+                const activitiesData = await activitiesResponse.json();
+                if (activitiesData.success) {
+                    updateHealthActivitiesList(activitiesData.activities);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load analytics data:', error);
+        }
+    }
+
+    function updateAdherenceChart(statistics) {
+        const adherenceChart = Chart.getChart('adherenceChart');
+        if (adherenceChart) {
+            adherenceChart.data.datasets[0].data = [
+                statistics.taken || 0,
+                statistics.missed || 0,
+                statistics.upcoming || 0
+            ];
+            adherenceChart.update();
+        }
+    }
+
+    function updateHealthMetricsChart(metrics) {
+        const healthMetricsChart = Chart.getChart('healthMetricsChart');
+        if (healthMetricsChart && metrics) {
+            // Extract blood pressure data
+            if (metrics.blood_pressure) {
+                const bpData = metrics.blood_pressure.map(item => item.value);
+                const labels = metrics.blood_pressure.map(item => {
+                    const date = new Date(item.date);
+                    return date.toLocaleString('default', { month: 'short' });
+                });
+                
+                healthMetricsChart.data.labels = labels;
+                healthMetricsChart.data.datasets[0].data = bpData;
+                
+                // Extract blood glucose data if it exists
+                if (metrics.blood_glucose) {
+                    const bgData = metrics.blood_glucose.map(item => item.value);
+                    healthMetricsChart.data.datasets[1].data = bgData;
+                }
+                
+                healthMetricsChart.update();
+            }
+        }
+    }
+
+    function updateHealthActivitiesList(activities) {
+        const healthActivityList = document.getElementById('healthActivityList');
+        if (healthActivityList && activities && activities.length > 0) {
+            // Clear existing list
+            healthActivityList.innerHTML = '';
+            
+            // Add new activities
+            activities.forEach(activity => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                
+                // Set item text
+                li.textContent = activity.title;
+                
+                // Add badge based on status
+                const badge = document.createElement('span');
+                
+                if (activity.status === 'due_today') {
+                    badge.className = 'badge bg-success rounded-pill';
+                    badge.textContent = 'Today';
+                } else if (activity.status === 'upcoming') {
+                    badge.className = 'badge bg-warning rounded-pill';
+                    
+                    // Calculate days until due
+                    const dueDate = new Date(activity.due_date);
+                    const today = new Date();
+                    const diffTime = Math.abs(dueDate - today);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    badge.textContent = diffDays === 1 ? 'Tomorrow' : `${diffDays} days`;
+                } else if (activity.status === 'overdue') {
+                    badge.className = 'badge bg-danger rounded-pill';
+                    badge.textContent = 'Overdue';
+                }
+                
+                li.appendChild(badge);
+                healthActivityList.appendChild(li);
+            });
+        }
+    }
+
+    // Additional event listener for analytics dashboard
+    const analyticsDashboardCollapse = document.getElementById('analyticsDashboardCollapse');
+    if (analyticsDashboardCollapse) {
+        // Initialize analytics when the dashboard is opened
+        analyticsDashboardCollapse.addEventListener('shown.bs.collapse', function() {
+            loadAnalyticsDashboard();
+        });
+    }
 }); 

@@ -25,6 +25,7 @@ An AI-powered medical assistant web application that helps with diagnosing disea
 - **Medication Reminders**: Track medications, set schedules, and monitor adherence with PDF export
 - **Medication Reminder System**: Automated email notifications for medication reminders and adherence reports
 - **PDF Export**: Export medication details and adherence statistics to PDF format
+- **Health Analytics Dashboard**: Interactive charts and visualizations of medication adherence, health metrics, and upcoming activities
 
 ## Setup
 
@@ -135,6 +136,14 @@ The application includes a BlackboxAI integration directly in the Python backend
 - Get personalized adherence improvement tips
 - View 7-day medication schedule overview
 - Generate comprehensive PDF reports for healthcare providers
+
+### Health Analytics Dashboard
+- **Medication Adherence Tracking**: Visual representation of medication adherence with doughnut charts
+- **Health Metrics Monitoring**: Track and visualize vital signs and health metrics over time with line graphs
+- **Activity Timeline**: View upcoming healthcare activities, appointments, and assessments
+- **Real-time Data Updates**: Analytics automatically refresh when the dashboard is opened
+- **Interactive Visualization**: Charts react to data changes and user interactions
+- **Comprehensive Health Overview**: Consolidated view of medication adherence, health metrics, and scheduled activities
 
 ## Technical Architecture
 

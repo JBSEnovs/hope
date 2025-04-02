@@ -116,8 +116,8 @@
                                     <label for="providerSelect" class="form-label">AI Provider</label>
                                     <select class="form-select" id="providerSelect">
                                         <option value="openai" selected>OpenAI</option>
-                                        <option value="cohere">Cohere</option>
                                         <option value="google">Google Gemini</option>
+                                        <option value="blackbox">BlackboxAI</option>
                                     </select>
                                 </div>
                                 <div class="col-md-5">
@@ -130,6 +130,65 @@
                                     <button type="submit" class="btn btn-dark w-100">Apply</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Dashboard -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">Health Analytics Dashboard</h5>
+                        <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse" data-bs-target="#analyticsDashboardCollapse">
+                            <i class="bi bi-bar-chart"></i> View Analytics
+                        </button>
+                    </div>
+                    <div class="collapse" id="analyticsDashboardCollapse">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header">Medication Adherence</div>
+                                        <div class="card-body">
+                                            <canvas id="adherenceChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header">Health Metrics Trend</div>
+                                        <div class="card-body">
+                                            <canvas id="healthMetricsChart" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-header">Recent Health Activity</div>
+                                        <div class="card-body">
+                                            <ul class="list-group" id="healthActivityList">
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Medication check-in
+                                                    <span class="badge bg-success rounded-pill">Today</span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Doctor appointment
+                                                    <span class="badge bg-warning rounded-pill">Tomorrow</span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                    Health assessment due
+                                                    <span class="badge bg-danger rounded-pill">3 days</span>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -575,6 +634,76 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.18.2/dist/plotly.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Initialize dashboard charts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts if elements exist
+            if (document.getElementById('adherenceChart')) {
+                const adherenceCtx = document.getElementById('adherenceChart').getContext('2d');
+                const adherenceChart = new Chart(adherenceCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Taken', 'Missed', 'Upcoming'],
+                        datasets: [{
+                            data: [85, 10, 5],
+                            backgroundColor: ['#28a745', '#dc3545', '#ffc107']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Medication Adherence Rate'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            if (document.getElementById('healthMetricsChart')) {
+                const metricsCtx = document.getElementById('healthMetricsChart').getContext('2d');
+                const healthMetricsChart = new Chart(metricsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [
+                            {
+                                label: 'Blood Pressure (sys)',
+                                data: [120, 122, 119, 118, 121, 117],
+                                borderColor: '#007bff',
+                                tension: 0.1
+                            },
+                            {
+                                label: 'Blood Glucose',
+                                data: [95, 97, 94, 98, 92, 95],
+                                borderColor: '#20c997',
+                                tension: 0.1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Health Metrics Over Time'
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
