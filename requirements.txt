@@ -34,4 +34,11 @@ googletrans==4.0.0-rc1
 
 # PDF Generation
 reportlab==3.6.12
-fpdf2==2.7.4 
+fpdf2==2.7.4
+# Email notifications
+flask-mail==0.9.1
+# Task scheduling
+apscheduler==3.10.1
+# Testing
+pytest==7.4.0
+pytest-flask==1.2.0 

@@ -23,6 +23,8 @@ An AI-powered medical assistant web application that helps with diagnosing disea
 - **Health Metrics Dashboard**: Track and visualize personal health metrics
 - **Multilingual Support**: Get medical information in 11 different languages
 - **Medication Reminders**: Track medications, set schedules, and monitor adherence with PDF export
+- **Medication Reminder System**: Automated email notifications for medication reminders and adherence reports
+- **PDF Export**: Export medication details and adherence statistics to PDF format
 
 ## Setup
 
@@ -185,3 +187,32 @@ This application is for **educational purposes only** and is not a substitute fo
 - Email: webdayskenya@gmail.com
 - WhatsApp: +254791258754
 - Instagram: phantom0x01 
+
+## Testing
+
+The Medical AI Assistant includes a comprehensive testing suite to ensure all features work correctly:
+
+### Running Tests
+
+```bash
+# Run all tests with detailed output
+python run_tests.py
+
+# Or run pytest directly
+pytest -v tests/
+```
+
+### Test Suite Components
+
+The test suite includes test files for core components:
+
+- **Medication Reminder Tests**: Tests for adding, retrieving, and tracking medications
+- **Email Service Tests**: Tests for sending medication reminders and adherence reports
+- **Reminder Scheduler Tests**: Tests for scheduling and sending automated reminders
+
+### Test Coverage
+
+The tests cover:
+- Core functionality validation
+- Edge case handling
+- Integration between components 

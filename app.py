@@ -13,6 +13,8 @@ from agents.collaboration import CollaborationManager
 from agents.blackbox_ai import BlackboxAI
 from agents.language import LanguageManager
 from agents.medication_reminder import MedicationReminder
+from agents.email_service import EmailService, mail
+from agents.reminder_scheduler import ReminderScheduler
 
 # Load environment variables
 load_dotenv()
@@ -27,6 +29,19 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Configure Flask-Mail
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL', 'False') == 'True'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'no-reply@medicalai.example.com')
+app.config['APP_URL'] = os.getenv('APP_URL', 'http://localhost:5000')
+
+# Initialize mail extension
+mail.init_app(app)
+
 # Create necessary directories
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs('data/documents', exist_ok=True)
@@ -34,6 +49,7 @@ os.makedirs('data/images', exist_ok=True)
 os.makedirs('data/audio', exist_ok=True)
 os.makedirs('data/sessions', exist_ok=True)
 os.makedirs('data/users', exist_ok=True)
+os.makedirs('data/medications', exist_ok=True)
 
 # Initialize components
 medical_agent = MedicalAgent()
@@ -46,6 +62,8 @@ user_manager = UserManager()
 blackbox_ai = BlackboxAI()
 language_manager = LanguageManager()
 medication_reminder = MedicationReminder()
+email_service = EmailService(app)
+reminder_scheduler = ReminderScheduler(app, user_manager, medication_reminder, email_service)
 
 @login_manager.user_loader
 def load_user(user_id):
