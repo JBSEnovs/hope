@@ -22,7 +22,7 @@ An AI-powered medical assistant web application that helps with diagnosing disea
 - **Chatbot Interface**: Intuitive chat-based interface with the medical assistant
 - **Health Metrics Dashboard**: Track and visualize personal health metrics
 - **Multilingual Support**: Get medical information in 11 different languages
-- **Medication Reminders**: Track medications, set schedules, and monitor adherence
+- **Medication Reminders**: Track medications, set schedules, and monitor adherence with PDF export
 
 ## Setup
 
