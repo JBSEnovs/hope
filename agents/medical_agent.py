@@ -13,6 +13,7 @@ from .collaboration import CollaborationManager
 from .auth import UserManager
 from .blackbox_ai import BlackboxAI
 from .language import LanguageManager
+from .medication_reminder import MedicationReminder
 
 class MedicalAgent:
     def __init__(self, provider="openai", model=None):
@@ -37,6 +38,7 @@ class MedicalAgent:
         self.user_manager = UserManager()
         self.blackbox_ai = BlackboxAI(model=model or "blackboxai")
         self.language_manager = LanguageManager()
+        self.medication_reminder = MedicationReminder()
         
         # Default language (can be changed per user)
         self.current_language = 'en'
@@ -584,4 +586,185 @@ class MedicalAgent:
         Returns:
             str: Translated text
         """
-        return self.language_manager.translate_text(text, target_language or self.current_language) 
+        return self.language_manager.translate_text(text, target_language or self.current_language)
+    
+    # Medication reminder methods
+    def get_user_medications(self, user_id):
+        """Get all medications for a user"""
+        return self.medication_reminder.get_user_medications(user_id)
+    
+    def add_medication(self, user_id, name, dosage, frequency, start_date, end_date=None, notes=None):
+        """Add a new medication reminder"""
+        return self.medication_reminder.add_medication(
+            user_id, name, dosage, frequency, start_date, end_date, notes
+        )
+    
+    def update_medication(self, user_id, medication_id, updates):
+        """Update an existing medication reminder"""
+        return self.medication_reminder.update_medication(user_id, medication_id, updates)
+    
+    def delete_medication(self, user_id, medication_id):
+        """Delete a medication reminder"""
+        return self.medication_reminder.delete_medication(user_id, medication_id)
+    
+    def record_medication_taken(self, user_id, medication_id, taken_at=None):
+        """Record that a medication dose was taken"""
+        return self.medication_reminder.record_medication_taken(user_id, medication_id, taken_at)
+    
+    def record_medication_missed(self, user_id, medication_id, missed_at=None):
+        """Record that a medication dose was missed"""
+        return self.medication_reminder.record_medication_missed(user_id, medication_id, missed_at)
+    
+    def get_adherence_rate(self, user_id, medication_id=None):
+        """Calculate medication adherence rate"""
+        return self.medication_reminder.get_adherence_rate(user_id, medication_id)
+    
+    def get_due_medications(self, user_id, hours_window=24):
+        """Get medications due within the specified time window"""
+        return self.medication_reminder.get_due_medications(user_id, hours_window)
+    
+    def generate_medication_schedule_visualization(self, user_id, days=7):
+        """
+        Generate a visualization of upcoming medication schedule
+        
+        Args:
+            user_id (str): User ID
+            days (int): Number of days to include in schedule
+            
+        Returns:
+            dict: Visualization data
+        """
+        medications = self.medication_reminder.get_user_medications(user_id)
+        
+        if not medications:
+            return None
+        
+        # Group medications by day and time
+        schedule_data = {}
+        current_date = datetime.now().date()
+        
+        for day in range(days):
+            target_date = current_date + timedelta(days=day)
+            date_str = target_date.strftime('%Y-%m-%d')
+            schedule_data[date_str] = []
+            
+            for med in medications:
+                start_date = datetime.fromisoformat(med["start_date"].replace('Z', '+00:00')).date()
+                
+                if med["end_date"]:
+                    end_date = datetime.fromisoformat(med["end_date"].replace('Z', '+00:00')).date()
+                    if target_date < start_date or target_date > end_date:
+                        continue
+                elif target_date < start_date:
+                    continue
+                
+                # Add to schedule based on frequency
+                frequency = med["frequency"].lower()
+                
+                if "daily" in frequency:
+                    schedule_data[date_str].append(med)
+                elif "every" in frequency and "hour" in frequency:
+                    schedule_data[date_str].append(med)
+                elif "weekly" in frequency:
+                    # Check if this is the right day of the week
+                    if start_date.weekday() == target_date.weekday():
+                        schedule_data[date_str].append(med)
+                elif "monthly" in frequency:
+                    # Check if this is the right day of the month
+                    if start_date.day == target_date.day:
+                        schedule_data[date_str].append(med)
+                else:
+                    # For other frequencies, include anyway
+                    schedule_data[date_str].append(med)
+        
+        # Create visualization data
+        formatted_data = {
+            "dates": list(schedule_data.keys()),
+            "medications": []
+        }
+        
+        for med in medications:
+            med_data = {
+                "name": med["name"],
+                "schedule": []
+            }
+            
+            for date in formatted_data["dates"]:
+                if med in schedule_data[date]:
+                    med_data["schedule"].append(1)
+                else:
+                    med_data["schedule"].append(0)
+            
+            formatted_data["medications"].append(med_data)
+        
+        # Generate visualization using data visualizer
+        return self.visualizer.create_medication_schedule_chart(formatted_data)
+        
+    def get_medication_suggestions(self, condition, language=None):
+        """
+        Get medication suggestions for a condition (for informational purposes only)
+        
+        Args:
+            condition (str): Medical condition
+            language (str, optional): Language code
+            
+        Returns:
+            dict: Medication suggestions
+        """
+        target_language = language or self.current_language
+        
+        if self.provider == "blackbox":
+            prompt = (
+                "You are a medical AI assistant. A user has the following medical condition: {condition}\n\n"
+                "Please provide a list of medications commonly prescribed for this condition. For each medication, include:\n"
+                "1. Generic name\n"
+                "2. Common brand names (if applicable)\n"
+                "3. Typical dosage range\n"
+                "4. Common side effects\n"
+                "5. Important warnings or contraindications\n\n"
+                "Format the response as a structured list. Begin with a clear disclaimer that this information is for "
+                "educational purposes only and not a substitute for professional medical advice or prescription."
+            ).format(condition=condition)
+            
+            result = self.blackbox_query(prompt)
+            
+            # Translate result if needed
+            if target_language != 'en':
+                result = self.language_manager.translate_medical_content(result, target_language)
+                
+            return {
+                "success": True,
+                "suggestions": result,
+                "disclaimer": self.disclaimer
+            }
+        else:
+            prompt = PromptTemplate.from_template(
+                "You are a medical AI assistant. A user has the following medical condition: {condition}\n\n"
+                "Please provide a list of medications commonly prescribed for this condition. For each medication, include:\n"
+                "1. Generic name\n"
+                "2. Common brand names (if applicable)\n"
+                "3. Typical dosage range\n"
+                "4. Common side effects\n"
+                "5. Important warnings or contraindications\n\n"
+                "Format the response as a structured list. Begin with a clear disclaimer that this information is for "
+                "educational purposes only and not a substitute for professional medical advice or prescription."
+            )
+            
+            chain = LLMChain(llm=self.llm, prompt=prompt)
+            result = chain.invoke({"condition": condition})
+            
+            # Translate result if needed
+            if target_language != 'en':
+                translated_result = self.language_manager.translate_medical_content(result['text'], target_language)
+                
+                return {
+                    "success": True,
+                    "suggestions": translated_result,
+                    "disclaimer": self.language_manager.translate_text(self.disclaimer, target_language)
+                }
+            else:
+                return {
+                    "success": True,
+                    "suggestions": result['text'],
+                    "disclaimer": self.disclaimer
+                } 

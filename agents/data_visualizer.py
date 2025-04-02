@@ -208,4 +208,89 @@ class DataVisualizer:
             
         except Exception as e:
             print(f"Error parsing time series data: {e}")
-            return {'x_values': [], 'series': []} 
+            return {'x_values': [], 'series': []}
+    
+    def create_medication_schedule_chart(self, data):
+        """
+        Create a heatmap-style chart for medication schedules
+        
+        Args:
+            data (dict): Medication schedule data with dates and medication names
+            
+        Returns:
+            dict: Chart data or image reference
+        """
+        try:
+            import matplotlib.pyplot as plt
+            import matplotlib.dates as mdates
+            import numpy as np
+            from datetime import datetime
+            import base64
+            from io import BytesIO
+            
+            # Extract data
+            dates = data["dates"]
+            medications = data["medications"]
+            
+            # Convert dates to datetime objects for better formatting
+            date_objects = [datetime.strptime(date, '%Y-%m-%d') for date in dates]
+            
+            # Create a matrix for the heatmap
+            med_names = [med["name"] for med in medications]
+            schedule_matrix = np.array([med["schedule"] for med in medications])
+            
+            # Create the figure
+            fig, ax = plt.subplots(figsize=(10, max(5, len(medications) * 0.5)))
+            
+            # Create the heatmap
+            heatmap = ax.pcolormesh(
+                np.arange(len(dates) + 1), 
+                np.arange(len(medications) + 1), 
+                schedule_matrix, 
+                cmap='Greens', 
+                vmin=0, 
+                vmax=1
+            )
+            
+            # Set the ticks and labels
+            ax.set_xticks(np.arange(len(dates)) + 0.5)
+            ax.set_xticklabels([date.strftime('%a\n%m/%d') for date in date_objects], 
+                              ha='center', minor=False)
+            
+            ax.set_yticks(np.arange(len(medications)) + 0.5)
+            ax.set_yticklabels(med_names, va='center', minor=False)
+            
+            # Set labels and title
+            ax.set_xlabel('Date')
+            ax.set_ylabel('Medication')
+            ax.set_title('7-Day Medication Schedule')
+            
+            # Add grid lines
+            ax.set_xticks(np.arange(len(dates) + 1), minor=True)
+            ax.set_yticks(np.arange(len(medications) + 1), minor=True)
+            ax.grid(which='minor', color='w', linestyle='-', linewidth=2)
+            
+            # Adjust layout
+            plt.tight_layout()
+            
+            # Save figure to a BytesIO object
+            buffer = BytesIO()
+            plt.savefig(buffer, format='png')
+            buffer.seek(0)
+            
+            # Convert to base64 string
+            image_base64 = base64.b64encode(buffer.read()).decode('utf-8')
+            plt.close()
+            
+            return {
+                "type": "heatmap",
+                "image": f"data:image/png;base64,{image_base64}"
+            }
+            
+        except Exception as e:
+            print(f"Error creating medication schedule chart: {e}")
+            return None
+        
+    def _extract_values(self, data_string, pattern=r'[\w\s]+:\s*(\d+)%'):
+        """Extract values from a string using regex pattern"""
+        # ... existing code ... 

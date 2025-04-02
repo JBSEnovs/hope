@@ -22,6 +22,7 @@ An AI-powered medical assistant web application that helps with diagnosing disea
 - **Chatbot Interface**: Intuitive chat-based interface with the medical assistant
 - **Health Metrics Dashboard**: Track and visualize personal health metrics
 - **Multilingual Support**: Get medical information in 11 different languages
+- **Medication Reminders**: Track medications, set schedules, and monitor adherence
 
 ## Setup
 
@@ -122,6 +123,15 @@ The application includes a BlackboxAI integration directly in the Python backend
 - Translate AI responses to your preferred language
 - Preserve medical terminology during translation
 - Special handling for medical terms to ensure accuracy
+
+### Medication Management
+- Add and track medications with dosage and schedule information
+- Set up various frequency patterns (daily, weekly, every X hours, etc.)
+- Record medication doses as taken or missed
+- View upcoming medications due in the next 24 hours
+- Monitor medication adherence with visual statistics
+- Get personalized adherence improvement tips
+- View 7-day medication schedule overview
 
 ## Technical Architecture
 

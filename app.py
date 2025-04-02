@@ -5,6 +5,14 @@ from dotenv import load_dotenv
 from agents.medical_agent import MedicalAgent
 from agents.auth import User, UserManager
 from werkzeug.utils import secure_filename
+from agents.document_processor import DocumentProcessor
+from agents.data_visualizer import DataVisualizer
+from agents.image_analyzer import MedicalImageAnalyzer
+from agents.voice_interface import VoiceInterface
+from agents.collaboration import CollaborationManager
+from agents.blackbox_ai import BlackboxAI
+from agents.language import LanguageManager
+from agents.medication_reminder import MedicationReminder
 
 # Load environment variables
 load_dotenv()
@@ -27,9 +35,17 @@ os.makedirs('data/audio', exist_ok=True)
 os.makedirs('data/sessions', exist_ok=True)
 os.makedirs('data/users', exist_ok=True)
 
-# Initialize the medical agent with default provider (OpenAI)
+# Initialize components
 medical_agent = MedicalAgent()
+doc_processor = DocumentProcessor()
+data_visualizer = DataVisualizer()
+image_analyzer = MedicalImageAnalyzer()
+voice_interface = VoiceInterface()
+collaboration_manager = CollaborationManager()
 user_manager = UserManager()
+blackbox_ai = BlackboxAI()
+language_manager = LanguageManager()
+medication_reminder = MedicationReminder()
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -724,6 +740,169 @@ def dashboard():
     else:
         flash('Error loading user profile', 'danger')
         return redirect(url_for('index'))
+
+@app.route('/medications', methods=['GET'])
+@login_required
+def medications_page():
+    """Render the medications management page"""
+    return render_template('medications.html')
+
+@app.route('/api/medications', methods=['GET'])
+@login_required
+def get_medications():
+    """Get all medications for the logged-in user"""
+    user_id = current_user.get_id()
+    medications = medication_reminder.get_user_medications(user_id)
+    adherence_rate = medication_reminder.get_adherence_rate(user_id)
+    
+    return jsonify({
+        'success': True,
+        'medications': medications,
+        'adherence_rate': adherence_rate
+    })
+
+@app.route('/api/medications', methods=['POST'])
+@login_required
+def add_medication():
+    """Add a new medication reminder"""
+    user_id = current_user.get_id()
+    data = request.json
+    
+    try:
+        medication = medication_reminder.add_medication(
+            user_id,
+            data.get('name'),
+            data.get('dosage'),
+            data.get('frequency'),
+            data.get('start_date'),
+            data.get('end_date'),
+            data.get('notes')
+        )
+        
+        return jsonify({
+            'success': True,
+            'medication': medication
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
+
+@app.route('/api/medications/<medication_id>', methods=['GET'])
+@login_required
+def get_medication(medication_id):
+    """Get details for a specific medication"""
+    user_id = current_user.get_id()
+    medications = medication_reminder.get_user_medications(user_id)
+    
+    for medication in medications:
+        if medication['id'] == medication_id:
+            return jsonify({
+                'success': True,
+                'medication': medication
+            })
+    
+    return jsonify({
+        'success': False,
+        'error': 'Medication not found'
+    }), 404
+
+@app.route('/api/medications/<medication_id>', methods=['DELETE'])
+@login_required
+def delete_medication(medication_id):
+    """Delete a medication reminder"""
+    user_id = current_user.get_id()
+    success = medication_reminder.delete_medication(user_id, medication_id)
+    
+    if success:
+        return jsonify({
+            'success': True
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Medication not found'
+        }), 404
+
+@app.route('/api/medications/<medication_id>/<status>', methods=['POST'])
+@login_required
+def record_medication_status(medication_id, status):
+    """Record medication as taken or missed"""
+    user_id = current_user.get_id()
+    
+    if status not in ['taken', 'missed']:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid status. Must be "taken" or "missed".'
+        }), 400
+    
+    if status == 'taken':
+        success = medication_reminder.record_medication_taken(user_id, medication_id)
+    else:
+        success = medication_reminder.record_medication_missed(user_id, medication_id)
+    
+    if success:
+        return jsonify({
+            'success': True
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Failed to record medication status'
+        }), 400
+
+@app.route('/api/medications/due', methods=['GET'])
+@login_required
+def get_due_medications():
+    """Get medications due within the next 24 hours"""
+    user_id = current_user.get_id()
+    hours = request.args.get('hours', 24, type=int)
+    
+    due_medications = medication_reminder.get_due_medications(user_id, hours)
+    
+    return jsonify({
+        'success': True,
+        'medications': due_medications
+    })
+
+@app.route('/api/medications/schedule/visualization', methods=['GET'])
+@login_required
+def get_medication_schedule_visualization():
+    """Get a visualization of the user's medication schedule"""
+    user_id = current_user.get_id()
+    days = request.args.get('days', 7, type=int)
+    
+    visualization = medical_agent.generate_medication_schedule_visualization(user_id, days)
+    
+    if visualization:
+        return jsonify({
+            'success': True,
+            'visualization': visualization
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'No medications found or error generating visualization'
+        }), 400
+
+@app.route('/api/medications/suggestions', methods=['POST'])
+@login_required
+def get_medication_suggestions():
+    """Get medication suggestions for a condition (for educational purposes only)"""
+    data = request.json
+    condition = data.get('condition', '')
+    language = data.get('language')
+    
+    if not condition:
+        return jsonify({
+            'success': False,
+            'error': 'Condition is required'
+        }), 400
+    
+    suggestions = medical_agent.get_medication_suggestions(condition, language)
+    
+    return jsonify(suggestions)
 
 if __name__ == '__main__':
     app.run(debug=True) 
