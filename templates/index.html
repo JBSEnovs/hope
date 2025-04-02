@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicalAI Assistant</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="my-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>MedicalAI Assistant</h1>
+                    <p class="lead">An AI agent to help with medical information, diagnosis, and research</p>
+                </div>
+                <div>
+                    {% if current_user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle"></i> 
+                            {{ current_user.get_name() or current_user.get_username() }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuButton">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
+                                <i class="bi bi-person"></i> Profile
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </a></li>
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div>
+                        <a href="/login" class="btn btn-outline-primary me-2">Login</a>
+                        <a href="/register" class="btn btn-primary">Register</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <strong>Medical Disclaimer:</strong> This application provides information for educational purposes only and 
+                is not a substitute for professional medical advice, diagnosis, or treatment.
+                Always consult with qualified healthcare providers for medical concerns.
+            </div>
+        </header>
+        
+        <!-- Profile Modal -->
+        {% if current_user.is_authenticated %}
+        <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="profileForm">
+                            <div class="mb-3">
+                                <label for="profileName" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="profileName" value="{{ current_user.get_name() }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="profileEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="profileEmail" value="{{ current_user.get_email() }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="profileRole" class="form-label">Role</label>
+                                <input type="text" class="form-control" id="profileRole" value="{{ current_user.get_role() }}" readonly>
+                            </div>
+                        </form>
+                        
+                        <hr>
+                        
+                        <h6>Change Password</h6>
+                        <form id="changePasswordForm">
+                            <div class="mb-3">
+                                <label for="currentPassword" class="form-label">Current Password</label>
+                                <input type="password" class="form-control" id="currentPassword">
+                            </div>
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">New Password</label>
+                                <input type="password" class="form-control" id="newPassword">
+                            </div>
+                            <button type="submit" class="btn btn-warning">Change Password</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Model Selection -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">AI Model Selection</h5>
+                        <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#modelSelectionCollapse">
+                            <i class="bi bi-gear"></i> Settings
+                        </button>
+                    </div>
+                    <div class="collapse" id="modelSelectionCollapse">
+                        <div class="card-body">
+                            <form id="modelSelectionForm" class="row align-items-end">
+                                <div class="col-md-5">
+                                    <label for="providerSelect" class="form-label">AI Provider</label>
+                                    <select class="form-select" id="providerSelect">
+                                        <option value="openai" selected>OpenAI</option>
+                                        <option value="cohere">Cohere</option>
+                                        <option value="google">Google Gemini</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5">
+                                    <label for="modelSelect" class="form-label">Model</label>
+                                    <select class="form-select" id="modelSelect">
+                                        <!-- Model options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-dark w-100">Apply</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="assistant-tab" data-bs-toggle="tab" data-bs-target="#assistant" type="button" role="tab">AI Assistant</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">Document Repository</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="image-analysis-tab" data-bs-toggle="tab" data-bs-target="#image-analysis" type="button" role="tab">Image Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="voice-interface-tab" data-bs-toggle="tab" data-bs-target="#voice-interface" type="button" role="tab">Voice Interface</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="consultation-tab" data-bs-toggle="tab" data-bs-target="#consultation" type="button" role="tab">Consultations</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="visualizations-tab" data-bs-toggle="tab" data-bs-target="#visualizations" type="button" role="tab">Visualizations</button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="myTabContent">
+            <!-- AI Assistant Tab -->
+            <div class="tab-pane fade show active" id="assistant" role="tabpanel" aria-labelledby="assistant-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0">Symptom Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Describe your symptoms in detail and get possible diagnoses.</p>
+                                <form id="diagnoseForm">
+                                    <div class="mb-3">
+                                        <textarea class="form-control" id="symptoms" rows="5" placeholder="Describe your symptoms here..."></textarea>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="includeVisualizationSymptoms" checked>
+                                        <label class="form-check-label" for="includeVisualizationSymptoms">
+                                            Include visualization
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Analyze Symptoms</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0">Treatment Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Get information about treatment options for a medical condition.</p>
+                                <form id="treatmentForm">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="condition" placeholder="Enter a medical condition">
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="includeVisualizationTreatment" checked>
+                                        <label class="form-check-label" for="includeVisualizationTreatment">
+                                            Include visualization
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-success">Get Treatment Info</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">Medical Research</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Find the latest research information about diseases.</p>
+                                <form id="researchForm">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="disease" placeholder="Enter a disease name">
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="includeVisualizationResearch" checked>
+                                        <label class="form-check-label" for="includeVisualizationResearch">
+                                            Include visualization (if available)
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn btn-info">Research Disease</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Document Repository Tab -->
+            <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="card-title mb-0">Upload Medical Documents</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Upload medical research papers, clinical guidelines, or other documents to enhance the AI's knowledge.</p>
+                                <form id="uploadForm" enctype="multipart/form-data">
+                                    <div class="mb-3">
+                                        <label for="documentFile" class="form-label">Select Document</label>
+                                        <input class="form-control" type="file" id="documentFile" accept=".pdf,.docx,.txt">
+                                        <div class="form-text">Supported formats: PDF, DOCX, TXT (Max size: 16MB)</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-secondary">Upload Document</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="card-title mb-0">Uploaded Documents</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="documentList" class="list-group">
+                                    <p class="text-muted" id="noDocumentsMessage">No documents uploaded yet</p>
+                                    <!-- Document list will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Image Analysis Tab -->
+            <div class="tab-pane fade" id="image-analysis" role="tabpanel" aria-labelledby="image-analysis-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-purple text-white">
+                                <h5 class="card-title mb-0">Medical Image Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Upload medical images for AI-assisted analysis.</p>
+                                <form id="imageAnalysisForm">
+                                    <div class="mb-3">
+                                        <label for="medicalImage" class="form-label">Select Medical Image</label>
+                                        <input class="form-control" type="file" id="medicalImage" accept="image/*">
+                                        <div class="form-text">Supported formats: JPG, PNG, TIFF, BMP</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="enhancementType" class="form-label">Image Enhancement</label>
+                                        <select class="form-select" id="enhancementType">
+                                            <option value="">None (Original Image)</option>
+                                            <!-- Enhancement options will be populated by JavaScript -->
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="analyzeEnhanced" checked>
+                                            <label class="form-check-label" for="analyzeEnhanced">
+                                                Analyze enhanced image instead of original
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary">Analyze Image</button>
+                                        <button type="button" id="enhanceOnlyBtn" class="btn btn-outline-secondary">Enhance Only</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-purple text-white">
+                                <h5 class="card-title mb-0">Image Preview</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="image-preview-container">
+                                    <img id="imagePreview" src="{{ url_for('static', filename='img/no-image.png') }}" class="img-fluid rounded" alt="Image Preview">
+                                </div>
+                                <div class="mt-3" id="imageInfo">
+                                    <p class="text-muted">No image selected</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header bg-purple text-white">
+                                <h5 class="card-title mb-0">Analysis Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="imageAnalysisResult" class="p-3 border rounded bg-light">
+                                    <p class="text-muted text-center">Image analysis results will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Voice Interface Tab -->
+            <div class="tab-pane fade" id="voice-interface" role="tabpanel" aria-labelledby="voice-interface-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">Voice Input</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Describe your symptoms or ask medical questions using your voice.</p>
+                                <div class="mb-3">
+                                    <label for="languageSelect" class="form-label">Language</label>
+                                    <select class="form-select" id="languageSelect">
+                                        <option value="en-US" selected>English (US)</option>
+                                        <!-- More language options will be populated by JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button id="startRecordingBtn" class="btn btn-info">
+                                        <i class="bi bi-mic"></i> Start Recording
+                                    </button>
+                                    <button id="stopRecordingBtn" class="btn btn-danger" disabled>
+                                        <i class="bi bi-stop-circle"></i> Stop Recording
+                                    </button>
+                                </div>
+                                <div class="mt-3 text-center" id="recordingStatus">
+                                    <p class="text-muted">Click Start Recording to begin</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">Transcription</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="transcriptionResult" class="p-3 border rounded bg-light" style="min-height: 150px;">
+                                    <p class="text-muted text-center">Transcribed speech will appear here...</p>
+                                </div>
+                                <div class="mt-3">
+                                    <form id="processTranscriptionForm">
+                                        <div class="mb-3">
+                                            <label for="actionType" class="form-label">Action</label>
+                                            <select class="form-select" id="actionType">
+                                                <option value="diagnose">Analyze Symptoms</option>
+                                                <option value="treatment">Treatment Information</option>
+                                                <option value="research">Medical Research</option>
+                                            </select>
+                                        </div>
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-primary">Process</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="card-title mb-0">AI Response</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="voiceResponseText" class="p-3 border rounded bg-light mb-3">
+                                    <p class="text-muted text-center">AI response will appear here...</p>
+                                </div>
+                                <div class="d-grid gap-2">
+                                    <button id="speakResponseBtn" class="btn btn-outline-info" disabled>
+                                        <i class="bi bi-volume-up"></i> Speak Response
+                                    </button>
+                                </div>
+                                <div class="mt-3" id="audioPlayer" style="display: none;">
+                                    <audio controls id="responseAudio" class="w-100">
+                                        <source src="" type="audio/wav">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Consultations Tab -->
+            <div class="tab-pane fade" id="consultation" role="tabpanel" aria-labelledby="consultation-tab">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="card-title mb-0">Consultation Sessions</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Create or join a medical consultation session.</p>
+                                <div class="d-grid gap-2 mb-3">
+                                    <button id="createConsultationBtn" class="btn btn-success">
+                                        <i class="bi bi-plus-circle"></i> New Consultation
+                                    </button>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Active Consultations</label>
+                                    <div id="activeConsultationsList" class="list-group">
+                                        <p class="text-muted text-center" id="noConsultationsMessage">No active consultations</p>
+                                        <!-- Active consultations will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <form id="joinConsultationForm">
+                                    <div class="mb-3">
+                                        <label for="consultationId" class="form-label">Join by ID</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="consultationId" placeholder="Consultation ID">
+                                            <button class="btn btn-outline-success" type="submit">Join</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0" id="currentConsultationTitle">No Active Consultation</h5>
+                                <div class="consultation-controls" style="display: none;">
+                                    <button id="endConsultationBtn" class="btn btn-sm btn-danger">End Session</button>
+                                    <button id="leaveConsultationBtn" class="btn btn-sm btn-outline-light">Leave Session</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div id="consultationMessages" class="consultation-messages p-3 border rounded bg-light mb-3" style="height: 400px; overflow-y: auto;">
+                                    <p class="text-muted text-center" id="noActiveConsultationMessage">Select or create a consultation to start messaging</p>
+                                    <!-- Messages will be populated by JavaScript -->
+                                </div>
+                                
+                                <form id="sendMessageForm" style="display: none;">
+                                    <div class="input-group">
+                                        <select class="form-select flex-grow-0" style="width: 110px;" id="messageType">
+                                            <option value="text" selected>Text</option>
+                                            <option value="image">Image</option>
+                                            <option value="file">File</option>
+                                        </select>
+                                        <input type="text" class="form-control" id="messageContent" placeholder="Type your message...">
+                                        <button class="btn btn-success" type="submit">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+                                    </div>
+                                    <div id="attachmentContainer" class="mt-2" style="display: none;">
+                                        <input type="file" id="messageAttachment" class="form-control">
+                                    </div>
+                                </form>
+                                
+                                <div id="consultationParticipants" class="mt-3" style="display: none;">
+                                    <h6>Participants</h6>
+                                    <div id="participantsList" class="d-flex flex-wrap gap-2">
+                                        <!-- Participants will be populated by JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualizations Tab -->
+            <div class="tab-pane fade" id="visualizations" role="tabpanel" aria-labelledby="visualizations-tab">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card mb-4">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="card-title mb-0">Saved Visualizations</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="visualizationsGallery" class="row">
+                                    <p class="text-muted" id="noVisualizationsMessage">No visualizations generated yet. Use the AI Assistant to generate visualizations.</p>
+                                    <!-- Visualizations will be populated by JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">AI Assistant Response</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-light copy-response-btn" title="Copy to clipboard">
+                                <i class="bi bi-clipboard"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="resultContainer" class="p-3 border rounded bg-light">
+                            <p class="text-muted text-center">Your results will appear here...</p>
+                        </div>
+                        
+                        <!-- Visualization Container -->
+                        <div id="visualizationContainer" class="mt-4 d-none">
+                            <h5 class="border-bottom pb-2">Visualization</h5>
+                            <div class="text-center p-3">
+                                <div id="chartContainer" style="width: 100%; height: 400px;"></div>
+                            </div>
+                            <div class="d-flex justify-content-center mt-2">
+                                <button id="saveVisualizationBtn" class="btn btn-sm btn-outline-dark">
+                                    <i class="bi bi-bookmark-plus"></i> Save Visualization
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-light mt-5 py-3 text-center">
+        <div class="container">
+            <p>MedicalAI Assistant &copy; 2025</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html> 
