@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, make_response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
 from agents.medical_agent import MedicalAgent
@@ -903,6 +903,27 @@ def get_medication_suggestions():
     suggestions = medical_agent.get_medication_suggestions(condition, language)
     
     return jsonify(suggestions)
+
+@app.route('/api/medications/report', methods=['GET'])
+@login_required
+def generate_medication_report():
+    """Generate a PDF report of the user's medications"""
+    user_id = current_user.get_id()
+    
+    # Generate the report
+    report_bytes = medication_reminder.generate_medication_report(user_id)
+    
+    if report_bytes:
+        # Create a response with the PDF
+        response = make_response(report_bytes)
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = 'attachment; filename=medication_report.pdf'
+        return response
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Failed to generate report or no medications found'
+        }), 400
 
 if __name__ == '__main__':
     app.run(debug=True) 

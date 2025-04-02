@@ -30,4 +30,8 @@ flask-login==0.6.3
 # For BlackboxAI integration
 requests==2.31.0
 # For multilingual support
-googletrans==4.0.0-rc1 
+googletrans==4.0.0-rc1
+
+# PDF Generation
+reportlab==3.6.12
+fpdf2==2.7.4 

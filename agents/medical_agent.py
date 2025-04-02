@@ -767,4 +767,16 @@ class MedicalAgent:
                     "success": True,
                     "suggestions": result['text'],
                     "disclaimer": self.disclaimer
-                } 
+                }
+    
+    def generate_medication_report(self, user_id):
+        """
+        Generate a comprehensive PDF report of user medications
+        
+        Args:
+            user_id (str): User ID
+            
+        Returns:
+            bytes: PDF report as bytes or None if failed
+        """
+        return self.medication_reminder.generate_medication_report(user_id) 

@@ -2,6 +2,10 @@ import os
 import json
 import uuid
 from datetime import datetime, timedelta
+import base64
+from io import BytesIO
+from fpdf import FPDF
+import matplotlib.pyplot as plt
 
 class MedicationReminder:
     """
@@ -325,4 +329,227 @@ class MedicationReminder:
                 # For other frequencies, include to be safe
                 due_medications.append(medication)
         
-        return due_medications 
+        return due_medications
+    
+    def generate_medication_report(self, user_id):
+        """
+        Generate a comprehensive PDF report of a user's medications
+        
+        Args:
+            user_id (str): User ID
+            
+        Returns:
+            bytes: PDF report as bytes or None if failed
+        """
+        if user_id not in self.reminders or not self.reminders[user_id]:
+            return None
+        
+        try:
+            # Create PDF
+            pdf = FPDF()
+            pdf.add_page()
+            
+            # Set up formatting
+            pdf.set_font("Helvetica", "B", 16)
+            pdf.set_fill_color(66, 135, 245)  # Primary blue color
+            pdf.set_text_color(255, 255, 255)  # White text
+            
+            # Header
+            pdf.cell(0, 16, "Medication Report", 0, 1, "C", True)
+            pdf.ln(5)
+            
+            # Report metadata
+            pdf.set_font("Helvetica", "", 10)
+            pdf.set_text_color(0, 0, 0)  # Black text
+            pdf.cell(0, 8, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}", 0, 1)
+            pdf.cell(0, 8, f"Patient ID: {user_id}", 0, 1)
+            pdf.ln(5)
+            
+            # Overall adherence
+            adherence_rate = self.get_adherence_rate(user_id)
+            
+            # Generate adherence pie chart
+            adherence_img = self._generate_adherence_chart(adherence_rate)
+            if adherence_img:
+                pdf.set_font("Helvetica", "B", 12)
+                pdf.cell(0, 10, "Medication Adherence", 0, 1)
+                
+                # Add adherence summary
+                pdf.set_font("Helvetica", "", 10)
+                pdf.cell(100, 8, f"Overall adherence rate: {adherence_rate}%", 0, 1)
+                
+                # Convert PIL image to temp file to pass to PDF
+                img_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'temp_chart.png')
+                adherence_img.save(img_path, format='PNG')
+                
+                # Add the image
+                pdf.image(img_path, x=55, y=pdf.get_y(), w=100)
+                pdf.ln(90)  # Space for the chart
+                
+                # Remove temporary file
+                os.remove(img_path)
+            
+            # Medications table
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.cell(0, 12, "Current Medications", 0, 1)
+            
+            # Table header
+            pdf.set_font("Helvetica", "B", 10)
+            pdf.set_fill_color(240, 240, 240)  # Light gray background
+            pdf.set_text_color(0, 0, 0)  # Black text
+            
+            # Define column widths (total = 190)
+            col_widths = [60, 25, 40, 30, 35]
+            
+            # Create header row
+            pdf.cell(col_widths[0], 10, "Medication", 1, 0, "C", True)
+            pdf.cell(col_widths[1], 10, "Dosage", 1, 0, "C", True)
+            pdf.cell(col_widths[2], 10, "Frequency", 1, 0, "C", True)
+            pdf.cell(col_widths[3], 10, "Start Date", 1, 0, "C", True)
+            pdf.cell(col_widths[4], 10, "End Date", 1, 1, "C", True)
+            
+            # Add medication rows
+            pdf.set_font("Helvetica", "", 10)
+            for medication in self.reminders[user_id]:
+                # First row - basic info
+                pdf.cell(col_widths[0], 10, medication["name"], 1, 0, "L")
+                pdf.cell(col_widths[1], 10, medication["dosage"], 1, 0, "L")
+                pdf.cell(col_widths[2], 10, medication["frequency"], 1, 0, "L")
+                
+                start_date = datetime.fromisoformat(medication["start_date"].replace('Z', '+00:00')).strftime('%Y-%m-%d')
+                pdf.cell(col_widths[3], 10, start_date, 1, 0, "C")
+                
+                end_date = "Ongoing"
+                if medication["end_date"]:
+                    end_date = datetime.fromisoformat(medication["end_date"].replace('Z', '+00:00')).strftime('%Y-%m-%d')
+                pdf.cell(col_widths[4], 10, end_date, 1, 1, "C")
+            
+            pdf.ln(5)
+            
+            # Detailed statistics for each medication
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.cell(0, 12, "Medication Details", 0, 1)
+            
+            for medication in self.reminders[user_id]:
+                # Medication header
+                pdf.set_font("Helvetica", "B", 12)
+                pdf.set_fill_color(200, 220, 255)  # Light blue
+                pdf.cell(0, 10, f"{medication['name']} - {medication['dosage']}", 0, 1, "L", True)
+                
+                # Medication details
+                pdf.set_font("Helvetica", "", 10)
+                pdf.cell(90, 8, f"Frequency: {medication['frequency']}", 0, 0)
+                
+                # Adherence for this medication
+                adherence = medication["adherence"]
+                
+                taken = adherence["taken_doses"]
+                total = adherence["total_doses"]
+                
+                if total > 0:
+                    rate = round((taken / total) * 100, 1)
+                    pdf.cell(100, 8, f"Adherence Rate: {rate}%", 0, 1)
+                    pdf.cell(90, 8, f"Doses Taken: {taken}/{total}", 0, 0)
+                    pdf.cell(100, 8, f"Doses Missed: {adherence['missed_doses']}", 0, 1)
+                else:
+                    pdf.cell(100, 8, "No doses recorded yet", 0, 1)
+                
+                # Notes
+                if medication["notes"]:
+                    pdf.ln(3)
+                    pdf.set_font("Helvetica", "I", 10)
+                    pdf.multi_cell(0, 8, f"Notes: {medication['notes']}")
+                
+                # Recent history if available
+                if adherence["history"]:
+                    pdf.ln(3)
+                    pdf.set_font("Helvetica", "B", 10)
+                    pdf.cell(0, 8, "Recent History (Last 5 Entries):", 0, 1)
+                    
+                    pdf.set_font("Helvetica", "", 10)
+                    recent_history = sorted(
+                        adherence["history"], 
+                        key=lambda x: datetime.fromisoformat(x["date"].replace('Z', '+00:00')),
+                        reverse=True
+                    )[:5]
+                    
+                    for entry in recent_history:
+                        entry_date = datetime.fromisoformat(entry["date"].replace('Z', '+00:00'))
+                        date_str = entry_date.strftime('%Y-%m-%d %H:%M')
+                        status = "✓ Taken" if entry["status"] == "taken" else "✗ Missed"
+                        status_color = (0, 150, 0) if entry["status"] == "taken" else (200, 0, 0)
+                        
+                        pdf.set_text_color(0, 0, 0)  # Reset to black for date
+                        pdf.cell(50, 8, date_str, 0, 0)
+                        
+                        pdf.set_text_color(*status_color)
+                        pdf.cell(40, 8, status, 0, 1)
+                    
+                    # Reset text color
+                    pdf.set_text_color(0, 0, 0)
+                
+                pdf.ln(5)
+            
+            # Health Provider Information
+            pdf.ln(10)
+            pdf.set_font("Helvetica", "B", 12)
+            pdf.set_fill_color(220, 220, 220)  # Light gray
+            pdf.cell(0, 10, "For Healthcare Providers", 0, 1, "L", True)
+            
+            pdf.set_font("Helvetica", "", 10)
+            pdf.multi_cell(0, 8, (
+                "This report provides a summary of the patient's current medications and adherence patterns. "
+                "It is generated directly from the patient's self-reported medication tracking data. "
+                "Please verify all information with the patient during consultation."
+            ))
+            
+            # Disclaimer
+            pdf.ln(10)
+            pdf.set_font("Helvetica", "I", 8)
+            pdf.set_text_color(100, 100, 100)  # Gray text
+            pdf.multi_cell(0, 5, (
+                "Disclaimer: This report is generated by the MedicalAI Assistant application based on user-entered data. "
+                "It is intended for informational purposes only and should not be used as the sole basis for medical decisions. "
+                "Always consult with qualified healthcare providers for medical concerns."
+            ))
+            
+            # Export to bytes
+            return pdf.output(dest='S').encode('latin1')
+            
+        except Exception as e:
+            print(f"Error generating medication report: {e}")
+            return None
+    
+    def _generate_adherence_chart(self, adherence_rate):
+        """Generate a pie chart showing medication adherence"""
+        try:
+            from PIL import Image
+            
+            # Create figure
+            plt.figure(figsize=(6, 4))
+            
+            # Create pie chart
+            labels = ['Taken', 'Missed']
+            sizes = [adherence_rate, 100 - adherence_rate]
+            colors = ['#28a745', '#dc3545']  # Green and red
+            
+            plt.pie(sizes, labels=labels, colors=colors, autopct='%1.1f%%',
+                   shadow=False, startangle=90, wedgeprops={'linewidth': 1, 'edgecolor': 'white'})
+            
+            # Equal aspect ratio ensures that pie is drawn as a circle
+            plt.axis('equal')
+            plt.title('Medication Adherence Rate')
+            
+            # Convert to image
+            buf = BytesIO()
+            plt.savefig(buf, format='png')
+            plt.close()
+            buf.seek(0)
+            
+            # Convert to PIL Image
+            img = Image.open(buf)
+            return img
+            
+        except Exception as e:
+            print(f"Error generating adherence chart: {e}")
+            return None 

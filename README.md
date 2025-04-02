@@ -132,6 +132,7 @@ The application includes a BlackboxAI integration directly in the Python backend
 - Monitor medication adherence with visual statistics
 - Get personalized adherence improvement tips
 - View 7-day medication schedule overview
+- Generate comprehensive PDF reports for healthcare providers
 
 ## Technical Architecture
 
