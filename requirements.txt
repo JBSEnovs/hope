@@ -26,4 +26,6 @@ redis==5.0.1
 sse-starlette==1.6.5
 boto3==1.34.33
 flask-bcrypt==1.0.1
-flask-login==0.6.3 
+flask-login==0.6.3
+# For BlackboxAI integration
+requests==2.31.0 

@@ -252,6 +252,10 @@ def providers():
         "google": {
             "default_model": "gemini-1.0-pro",
             "available_models": ["gemini-1.0-pro", "gemini-1.5-pro"]
+        },
+        "blackbox": {
+            "default_model": "blackboxai",
+            "available_models": medical_agent.get_blackbox_models()
         }
     }
     
@@ -468,6 +472,68 @@ def change_password():
     try:
         result = medical_agent.change_user_password(current_user.id, current_password, new_password)
         return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# BlackboxAI Endpoints
+@app.route('/api/blackbox/query', methods=['POST'])
+@login_required
+def blackbox_query():
+    data = request.json
+    query = data.get('query', '')
+    conversation_id = data.get('conversation_id', None)
+    model = data.get('model', None)
+    
+    if not query:
+        return jsonify({'error': 'No query provided'}), 400
+    
+    # Save current provider
+    current_provider = medical_agent.provider
+    current_model = medical_agent.model_name
+    
+    try:
+        # Temporarily switch to BlackboxAI provider
+        if current_provider != "blackbox":
+            medical_agent.change_provider("blackbox", model)
+        elif model and model != medical_agent.blackbox_ai.model:
+            medical_agent.blackbox_ai.change_model(model)
+        
+        # Send query to BlackboxAI
+        response_data = {}
+        if conversation_id:
+            # Continue existing conversation
+            result = medical_agent.blackbox_ai.continue_conversation(conversation_id, query)
+            response_data['conversation_id'] = conversation_id
+        else:
+            # Start new conversation
+            result = medical_agent.blackbox_ai.send_message(query)
+            response_data['conversation_id'] = result.get('conversation_id') if result.get('success', False) else None
+        
+        # Restore original provider if needed
+        if current_provider != "blackbox":
+            medical_agent.change_provider(current_provider, current_model)
+        
+        # Build response
+        if result.get('success', False):
+            response_data['success'] = True
+            response_data['response'] = result.get('response')
+        else:
+            return jsonify({'success': False, 'error': result.get('error', 'Unknown error')}), 500
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        # Restore original provider if needed
+        if current_provider != "blackbox":
+            medical_agent.change_provider(current_provider, current_model)
+        
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/blackbox/models', methods=['GET'])
+def blackbox_models():
+    try:
+        models = medical_agent.get_blackbox_models()
+        return jsonify({'models': models})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

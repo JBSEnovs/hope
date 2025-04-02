@@ -11,6 +11,7 @@ from .image_analyzer import MedicalImageAnalyzer
 from .voice_interface import VoiceInterface
 from .collaboration import CollaborationManager
 from .auth import UserManager
+from .blackbox_ai import BlackboxAI
 
 class MedicalAgent:
     def __init__(self, provider="openai", model=None):
@@ -18,7 +19,7 @@ class MedicalAgent:
         Initialize the Medical Agent with specified AI provider
         
         Args:
-            provider (str): The AI provider to use ('openai', 'cohere', or 'google')
+            provider (str): The AI provider to use ('openai', 'cohere', 'google', or 'blackbox')
             model (str): Specific model to use, or None for default
         """
         # Set up the AI model based on provider
@@ -33,6 +34,7 @@ class MedicalAgent:
         self.voice_interface = VoiceInterface()
         self.collaboration_manager = CollaborationManager()
         self.user_manager = UserManager()
+        self.blackbox_ai = BlackboxAI(model=model or "blackboxai")
         
         # Set up the disclaimer
         self.disclaimer = (
@@ -81,8 +83,14 @@ class MedicalAgent:
                 google_api_key=api_key
             )
             
+        elif self.provider == "blackbox":
+            # Initialize BlackboxAI (no API key required for free version)
+            self.blackbox_ai = BlackboxAI(model=self.model_name or "blackboxai")
+            # Return None for LLM as we'll use the BlackboxAI agent directly
+            return None
+            
         else:
-            raise ValueError(f"Unsupported provider: {self.provider}. Supported providers are 'openai', 'cohere', and 'google'")
+            raise ValueError(f"Unsupported provider: {self.provider}. Supported providers are 'openai', 'cohere', 'google', and 'blackbox'")
     
     def change_provider(self, provider, model=None):
         """Change the AI provider dynamically"""
@@ -90,6 +98,8 @@ class MedicalAgent:
         self.model_name = model
         try:
             self.llm = self._initialize_llm()
+            if provider.lower() == "blackbox" and model:
+                self.blackbox_ai.change_model(model)
             return True
         except ValueError as e:
             print(f"Error changing provider: {str(e)}")
@@ -97,82 +107,171 @@ class MedicalAgent:
     
     def diagnose(self, symptoms):
         """Analyze symptoms and suggest possible diagnoses"""
-        prompt = PromptTemplate.from_template(
-            "You are a medical AI assistant. A patient describes the following symptoms: {symptoms}\n\n"
-            "Based only on these symptoms, suggest possible conditions that might match these symptoms, "
-            "organized from most to least likely. For each, include:\n"
-            "1. The name of the condition\n"
-            "2. Why it matches the symptoms\n"
-            "3. What other symptoms might be present if this condition is correct\n"
-            "4. What kind of medical professional should be consulted\n\n"
-            "Remember to be thorough but emphasize the importance of consulting a healthcare professional for accurate diagnosis."
-        )
-        
-        chain = LLMChain(llm=self.llm, prompt=prompt)
-        result = chain.invoke({"symptoms": symptoms})
-        
-        return f"{self.disclaimer}\n\n{result['text']}"
+        if self.provider == "blackbox":
+            prompt = (
+                "You are a medical AI assistant. A patient describes the following symptoms: {symptoms}\n\n"
+                "Based only on these symptoms, suggest possible conditions that might match these symptoms, "
+                "organized from most to least likely. For each, include:\n"
+                "1. The name of the condition\n"
+                "2. Why it matches the symptoms\n"
+                "3. What other symptoms might be present if this condition is correct\n"
+                "4. What kind of medical professional should be consulted\n\n"
+                "Remember to be thorough but emphasize the importance of consulting a healthcare professional for accurate diagnosis."
+            ).format(symptoms=symptoms)
+            
+            result = self.blackbox_query(prompt)
+            return f"{self.disclaimer}\n\n{result}"
+        else:
+            prompt = PromptTemplate.from_template(
+                "You are a medical AI assistant. A patient describes the following symptoms: {symptoms}\n\n"
+                "Based only on these symptoms, suggest possible conditions that might match these symptoms, "
+                "organized from most to least likely. For each, include:\n"
+                "1. The name of the condition\n"
+                "2. Why it matches the symptoms\n"
+                "3. What other symptoms might be present if this condition is correct\n"
+                "4. What kind of medical professional should be consulted\n\n"
+                "Remember to be thorough but emphasize the importance of consulting a healthcare professional for accurate diagnosis."
+            )
+            
+            chain = LLMChain(llm=self.llm, prompt=prompt)
+            result = chain.invoke({"symptoms": symptoms})
+            
+            return f"{self.disclaimer}\n\n{result['text']}"
     
     def recommend_treatment(self, condition):
         """Provide information about treatment options for a condition"""
-        prompt = PromptTemplate.from_template(
-            "You are a medical AI assistant. A user is asking about treatment options for: {condition}\n\n"
-            "Provide information about:\n"
-            "1. Common evidence-based treatment approaches\n"
-            "2. Lifestyle modifications that might help\n"
-            "3. What type of healthcare provider typically manages this condition\n"
-            "4. Important considerations patients should know\n\n"
-            "Focus on providing balanced, evidence-based information while emphasizing the importance of personalized medical advice."
-        )
-        
-        chain = LLMChain(llm=self.llm, prompt=prompt)
-        result = chain.invoke({"condition": condition})
-        
-        return f"{self.disclaimer}\n\n{result['text']}"
+        if self.provider == "blackbox":
+            prompt = (
+                "You are a medical AI assistant. A user is asking about treatment options for: {condition}\n\n"
+                "Provide information about:\n"
+                "1. Common evidence-based treatment approaches\n"
+                "2. Lifestyle modifications that might help\n"
+                "3. What type of healthcare provider typically manages this condition\n"
+                "4. Important considerations patients should know\n\n"
+                "Focus on providing balanced, evidence-based information while emphasizing the importance of personalized medical advice."
+            ).format(condition=condition)
+            
+            result = self.blackbox_query(prompt)
+            return f"{self.disclaimer}\n\n{result}"
+        else:
+            prompt = PromptTemplate.from_template(
+                "You are a medical AI assistant. A user is asking about treatment options for: {condition}\n\n"
+                "Provide information about:\n"
+                "1. Common evidence-based treatment approaches\n"
+                "2. Lifestyle modifications that might help\n"
+                "3. What type of healthcare provider typically manages this condition\n"
+                "4. Important considerations patients should know\n\n"
+                "Focus on providing balanced, evidence-based information while emphasizing the importance of personalized medical advice."
+            )
+            
+            chain = LLMChain(llm=self.llm, prompt=prompt)
+            result = chain.invoke({"condition": condition})
+            
+            return f"{self.disclaimer}\n\n{result['text']}"
     
     def research_disease(self, disease):
         """Provide latest research information about a disease"""
         # First, check our document database for relevant information
         relevant_docs = self.doc_processor.search_documents(disease)
         
-        # Create a custom prompt that includes relevant document information if available
-        if relevant_docs:
-            prompt = PromptTemplate.from_template(
-                "You are a medical AI assistant with access to medical knowledge and the following documents:\n\n"
-                "{context}\n\n"
-                "Based on these documents and your knowledge, provide information about: {disease}\n\n"
-                "Include information about:\n"
-                "1. Current understanding of causes/mechanisms\n"
-                "2. Recent research developments\n"
-                "3. Treatment advances\n"
-                "4. Areas of ongoing research\n\n"
-                "Focus on providing accurate, up-to-date information from reputable medical sources."
-            )
+        if self.provider == "blackbox":
+            # Create prompt for BlackboxAI
+            if relevant_docs:
+                context = "\n\n".join([f"Document from {doc.metadata.get('source', 'unknown source')}:\n{doc.page_content}" for doc in relevant_docs])
+                prompt = (
+                    "You are a medical AI assistant with access to medical knowledge and the following documents:\n\n"
+                    "{context}\n\n"
+                    "Based on these documents and your knowledge, provide information about: {disease}\n\n"
+                    "Include information about:\n"
+                    "1. Current understanding of causes/mechanisms\n"
+                    "2. Recent research developments\n"
+                    "3. Treatment advances\n"
+                    "4. Areas of ongoing research\n\n"
+                    "Focus on providing accurate, up-to-date information from reputable medical sources."
+                ).format(disease=disease, context=context)
+            else:
+                prompt = (
+                    "You are a medical AI assistant with access to medical knowledge. "
+                    "Provide information about the latest understanding and research regarding: {disease}\n\n"
+                    "Include information about:\n"
+                    "1. Current understanding of causes/mechanisms\n"
+                    "2. Recent research developments\n"
+                    "3. Treatment advances\n"
+                    "4. Areas of ongoing research\n\n"
+                    "Focus on providing accurate, up-to-date information from reputable medical sources."
+                ).format(disease=disease)
             
-            # Format the document content
-            context = "\n\n".join([f"Document from {doc.metadata.get('source', 'unknown source')}:\n{doc.page_content}" for doc in relevant_docs])
-            
-            # Use the stuff documents chain when we have relevant docs
-            doc_chain = create_stuff_documents_chain(self.llm, prompt)
-            result = doc_chain.invoke({"disease": disease, "context": context})
-            
+            result = self.blackbox_query(prompt)
+            return f"{self.disclaimer}\n\n{result}"
         else:
-            # Use standard prompt when no relevant docs are found
-            prompt = PromptTemplate.from_template(
-                "You are a medical AI assistant with access to medical knowledge. "
-                "Provide information about the latest understanding and research regarding: {disease}\n\n"
-                "Include information about:\n"
-                "1. Current understanding of causes/mechanisms\n"
-                "2. Recent research developments\n"
-                "3. Treatment advances\n"
-                "4. Areas of ongoing research\n\n"
-                "Focus on providing accurate, up-to-date information from reputable medical sources."
-            )
+            # Create a custom prompt that includes relevant document information if available
+            if relevant_docs:
+                prompt = PromptTemplate.from_template(
+                    "You are a medical AI assistant with access to medical knowledge and the following documents:\n\n"
+                    "{context}\n\n"
+                    "Based on these documents and your knowledge, provide information about: {disease}\n\n"
+                    "Include information about:\n"
+                    "1. Current understanding of causes/mechanisms\n"
+                    "2. Recent research developments\n"
+                    "3. Treatment advances\n"
+                    "4. Areas of ongoing research\n\n"
+                    "Focus on providing accurate, up-to-date information from reputable medical sources."
+                )
+                
+                # Format the document content
+                context = "\n\n".join([f"Document from {doc.metadata.get('source', 'unknown source')}:\n{doc.page_content}" for doc in relevant_docs])
+                
+                # Use the stuff documents chain when we have relevant docs
+                doc_chain = create_stuff_documents_chain(self.llm, prompt)
+                result = doc_chain.invoke({"disease": disease, "context": context})
+                
+            else:
+                # Use standard prompt when no relevant docs are found
+                prompt = PromptTemplate.from_template(
+                    "You are a medical AI assistant with access to medical knowledge. "
+                    "Provide information about the latest understanding and research regarding: {disease}\n\n"
+                    "Include information about:\n"
+                    "1. Current understanding of causes/mechanisms\n"
+                    "2. Recent research developments\n"
+                    "3. Treatment advances\n"
+                    "4. Areas of ongoing research\n\n"
+                    "Focus on providing accurate, up-to-date information from reputable medical sources."
+                )
+                
+                chain = LLMChain(llm=self.llm, prompt=prompt)
+                result = chain.invoke({"disease": disease})
             
-            chain = LLMChain(llm=self.llm, prompt=prompt)
-            result = chain.invoke({"disease": disease})
+            return f"{self.disclaimer}\n\n{result['text']}"
+    
+    def blackbox_query(self, query, conversation_id=None):
+        """
+        Send a direct query to BlackboxAI
         
-        return f"{self.disclaimer}\n\n{result['text']}"
+        Args:
+            query (str): The query text
+            conversation_id (str, optional): Existing conversation ID
+            
+        Returns:
+            str: BlackboxAI response text
+        """
+        if conversation_id:
+            result = self.blackbox_ai.continue_conversation(conversation_id, query)
+        else:
+            result = self.blackbox_ai.send_message(query)
+        
+        if result.get('success', False):
+            return result.get('response', 'No response from BlackboxAI')
+        else:
+            raise ValueError(f"BlackboxAI error: {result.get('error', 'Unknown error')}")
+    
+    def get_blackbox_models(self):
+        """
+        Get available models for BlackboxAI
+        
+        Returns:
+            list: Available model names
+        """
+        return self.blackbox_ai.get_available_models()
     
     def upload_document(self, file_content, file_name):
         """Process and store a medical document for future reference"""

@@ -1,0 +1,14 @@
+{
+  "name": "blackbox-ai-service",
+  "version": "1.0.0",
+  "description": "BlackboxAI service for MedicalAI Assistant",
+  "main": "blackbox_server.js",
+  "scripts": {
+    "start": "node blackbox_server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.2"
+  }
+} 
