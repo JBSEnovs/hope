@@ -12,6 +12,7 @@ from .voice_interface import VoiceInterface
 from .collaboration import CollaborationManager
 from .auth import UserManager
 from .blackbox_ai import BlackboxAI
+from .language import LanguageManager
 
 class MedicalAgent:
     def __init__(self, provider="openai", model=None):
@@ -35,6 +36,10 @@ class MedicalAgent:
         self.collaboration_manager = CollaborationManager()
         self.user_manager = UserManager()
         self.blackbox_ai = BlackboxAI(model=model or "blackboxai")
+        self.language_manager = LanguageManager()
+        
+        # Default language (can be changed per user)
+        self.current_language = 'en'
         
         # Set up the disclaimer
         self.disclaimer = (
@@ -105,8 +110,11 @@ class MedicalAgent:
             print(f"Error changing provider: {str(e)}")
             return False
     
-    def diagnose(self, symptoms):
+    def diagnose(self, symptoms, language=None):
         """Analyze symptoms and suggest possible diagnoses"""
+        # Use specified language or default
+        target_language = language or self.current_language
+        
         if self.provider == "blackbox":
             prompt = (
                 "You are a medical AI assistant. A patient describes the following symptoms: {symptoms}\n\n"
@@ -120,7 +128,14 @@ class MedicalAgent:
             ).format(symptoms=symptoms)
             
             result = self.blackbox_query(prompt)
-            return f"{self.disclaimer}\n\n{result}"
+            
+            # Translate result if needed
+            if target_language != 'en':
+                result = self.language_manager.translate_medical_content(result, target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{result}"
+            else:
+                return f"{self.disclaimer}\n\n{result}"
         else:
             prompt = PromptTemplate.from_template(
                 "You are a medical AI assistant. A patient describes the following symptoms: {symptoms}\n\n"
@@ -136,10 +151,19 @@ class MedicalAgent:
             chain = LLMChain(llm=self.llm, prompt=prompt)
             result = chain.invoke({"symptoms": symptoms})
             
-            return f"{self.disclaimer}\n\n{result['text']}"
+            # Translate result if needed
+            if target_language != 'en':
+                translated_result = self.language_manager.translate_medical_content(result['text'], target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{translated_result}"
+            else:
+                return f"{self.disclaimer}\n\n{result['text']}"
     
-    def recommend_treatment(self, condition):
+    def recommend_treatment(self, condition, language=None):
         """Provide information about treatment options for a condition"""
+        # Use specified language or default
+        target_language = language or self.current_language
+        
         if self.provider == "blackbox":
             prompt = (
                 "You are a medical AI assistant. A user is asking about treatment options for: {condition}\n\n"
@@ -152,7 +176,14 @@ class MedicalAgent:
             ).format(condition=condition)
             
             result = self.blackbox_query(prompt)
-            return f"{self.disclaimer}\n\n{result}"
+            
+            # Translate result if needed
+            if target_language != 'en':
+                result = self.language_manager.translate_medical_content(result, target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{result}"
+            else:
+                return f"{self.disclaimer}\n\n{result}"
         else:
             prompt = PromptTemplate.from_template(
                 "You are a medical AI assistant. A user is asking about treatment options for: {condition}\n\n"
@@ -167,10 +198,19 @@ class MedicalAgent:
             chain = LLMChain(llm=self.llm, prompt=prompt)
             result = chain.invoke({"condition": condition})
             
-            return f"{self.disclaimer}\n\n{result['text']}"
+            # Translate result if needed
+            if target_language != 'en':
+                translated_result = self.language_manager.translate_medical_content(result['text'], target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{translated_result}"
+            else:
+                return f"{self.disclaimer}\n\n{result['text']}"
     
-    def research_disease(self, disease):
+    def research_disease(self, disease, language=None):
         """Provide latest research information about a disease"""
+        # Use specified language or default
+        target_language = language or self.current_language
+        
         # First, check our document database for relevant information
         relevant_docs = self.doc_processor.search_documents(disease)
         
@@ -202,7 +242,14 @@ class MedicalAgent:
                 ).format(disease=disease)
             
             result = self.blackbox_query(prompt)
-            return f"{self.disclaimer}\n\n{result}"
+            
+            # Translate result if needed
+            if target_language != 'en':
+                result = self.language_manager.translate_medical_content(result, target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{result}"
+            else:
+                return f"{self.disclaimer}\n\n{result}"
         else:
             # Create a custom prompt that includes relevant document information if available
             if relevant_docs:
@@ -241,7 +288,13 @@ class MedicalAgent:
                 chain = LLMChain(llm=self.llm, prompt=prompt)
                 result = chain.invoke({"disease": disease})
             
-            return f"{self.disclaimer}\n\n{result['text']}"
+            # Translate result if needed
+            if target_language != 'en':
+                translated_result = self.language_manager.translate_medical_content(result['text'], target_language)
+                disclaimer = self.language_manager.translate_text(self.disclaimer, target_language)
+                return f"{disclaimer}\n\n{translated_result}"
+            else:
+                return f"{self.disclaimer}\n\n{result['text']}"
     
     def blackbox_query(self, query, conversation_id=None):
         """
@@ -482,4 +535,53 @@ class MedicalAgent:
     
     def change_user_password(self, user_id, current_password, new_password):
         """Change user password"""
-        return self.user_manager.change_password(user_id, current_password, new_password) 
+        return self.user_manager.change_password(user_id, current_password, new_password)
+    
+    def change_language(self, language_code):
+        """
+        Change the current language 
+        
+        Args:
+            language_code (str): ISO 639-1 language code
+        
+        Returns:
+            bool: Success status
+        """
+        if language_code in self.language_manager.supported_languages:
+            self.current_language = language_code
+            return True
+        return False
+    
+    def get_supported_languages(self):
+        """
+        Get available languages 
+        
+        Returns:
+            dict: Dictionary of language codes and names
+        """
+        return self.language_manager.get_supported_languages()
+    
+    def detect_language(self, text):
+        """
+        Detect language of text
+        
+        Args:
+            text (str): Text to analyze
+            
+        Returns:
+            str: Language code
+        """
+        return self.language_manager.detect_language(text)
+    
+    def translate_text(self, text, target_language=None):
+        """
+        Translate text to target language
+        
+        Args:
+            text (str): Text to translate
+            target_language (str): Target language code
+            
+        Returns:
+            str: Translated text
+        """
+        return self.language_manager.translate_text(text, target_language or self.current_language) 

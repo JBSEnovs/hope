@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicalAI Assistant - Language Settings</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-language"></i> Language Settings</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> Changing the language will translate all AI responses into your selected language.
+                        </div>
+                        
+                        <form id="language-form">
+                            <div class="mb-4">
+                                <label for="language-select" class="form-label">Select your preferred language:</label>
+                                <select id="language-select" class="form-select form-select-lg mb-3" aria-label="Language selection">
+                                    <!-- Languages will be populated via JavaScript -->
+                                </select>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="button" id="save-language" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save"></i> Save Language Preference
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-5">
+                            <h5>Language Detection Test</h5>
+                            <p class="text-muted">Type some text below to detect its language:</p>
+                            
+                            <div class="mb-3">
+                                <textarea id="detect-text" class="form-control" rows="3" placeholder="Type or paste text here..."></textarea>
+                            </div>
+                            
+                            <div class="d-flex">
+                                <button id="detect-language" class="btn btn-outline-primary">
+                                    <i class="fas fa-search"></i> Detect Language
+                                </button>
+                                <div id="detection-result" class="ms-3 pt-2"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-5">
+                            <h5>Translation Test</h5>
+                            <p class="text-muted">Test the translation feature:</p>
+                            
+                            <div class="mb-3">
+                                <textarea id="translate-source" class="form-control" rows="3" placeholder="Type text to translate..."></textarea>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="translate-to" class="form-label">Translate to:</label>
+                                    <select id="translate-to" class="form-select" aria-label="Translation language selection">
+                                        <!-- Languages will be populated via JavaScript -->
+                                    </select>
+                                </div>
+                                <div class="col-md-6 d-flex align-items-end">
+                                    <button id="translate-button" class="btn btn-outline-primary">
+                                        <i class="fas fa-language"></i> Translate
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="translation-result" class="form-label">Translation:</label>
+                                <textarea id="translation-result" class="form-control" rows="3" readonly></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageSelect = document.getElementById('language-select');
+            const translateToSelect = document.getElementById('translate-to');
+            const saveLanguageBtn = document.getElementById('save-language');
+            const detectTextArea = document.getElementById('detect-text');
+            const detectBtn = document.getElementById('detect-language');
+            const detectionResult = document.getElementById('detection-result');
+            const translateSourceArea = document.getElementById('translate-source');
+            const translateBtn = document.getElementById('translate-button');
+            const translationResult = document.getElementById('translation-result');
+            
+            // Load supported languages
+            function loadLanguages() {
+                fetch('/api/languages')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.languages) {
+                            // Clear the selects
+                            languageSelect.innerHTML = '';
+                            translateToSelect.innerHTML = '';
+                            
+                            // Add languages to both selects
+                            for (const [code, name] of Object.entries(data.languages)) {
+                                const option1 = document.createElement('option');
+                                option1.value = code;
+                                option1.textContent = name;
+                                
+                                const option2 = document.createElement('option');
+                                option2.value = code;
+                                option2.textContent = name;
+                                
+                                languageSelect.appendChild(option1);
+                                translateToSelect.appendChild(option2);
+                            }
+                        }
+                    })
+                    .catch(error => console.error('Error loading languages:', error));
+            }
+            
+            // Save language preference
+            saveLanguageBtn.addEventListener('click', function() {
+                const selectedLanguage = languageSelect.value;
+                
+                fetch('/api/set_language', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({language_code: selectedLanguage})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result) {
+                        alert('Language preference saved successfully!');
+                    } else if (data.error) {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving language preference:', error);
+                    alert('An error occurred while saving your language preference.');
+                });
+            });
+            
+            // Detect language
+            detectBtn.addEventListener('click', function() {
+                const text = detectTextArea.value.trim();
+                
+                if (!text) {
+                    detectionResult.textContent = 'Please enter text to detect.';
+                    return;
+                }
+                
+                fetch('/api/detect_language', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({text: text})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.language_code) {
+                        // Find the language name
+                        const languageOption = Array.from(languageSelect.options).find(option => option.value === data.language_code);
+                        const languageName = languageOption ? languageOption.textContent : data.language_code;
+                        
+                        detectionResult.innerHTML = `<strong>Detected language:</strong> ${languageName} (${data.language_code})`;
+                    } else if (data.error) {
+                        detectionResult.textContent = 'Error: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error detecting language:', error);
+                    detectionResult.textContent = 'An error occurred while detecting the language.';
+                });
+            });
+            
+            // Translate text
+            translateBtn.addEventListener('click', function() {
+                const text = translateSourceArea.value.trim();
+                const targetLanguage = translateToSelect.value;
+                
+                if (!text) {
+                    translationResult.value = 'Please enter text to translate.';
+                    return;
+                }
+                
+                fetch('/api/translate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        text: text,
+                        target_language: targetLanguage
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.result) {
+                        translationResult.value = data.result;
+                    } else if (data.error) {
+                        translationResult.value = 'Error: ' + data.error;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error translating text:', error);
+                    translationResult.value = 'An error occurred during translation.';
+                });
+            });
+            
+            // Initialize
+            loadLanguages();
+        });
+    </script>
+</body>
+</html> 

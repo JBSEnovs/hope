@@ -19,6 +19,9 @@ An AI-powered medical assistant web application that helps with diagnosing disea
 - **Image Analysis**: AI-assisted analysis of medical images with enhancement options
 - **Voice Interface**: Speak to the AI and listen to responses
 - **Collaborative Consultations**: Real-time messaging between patients and healthcare providers
+- **Chatbot Interface**: Intuitive chat-based interface with the medical assistant
+- **Health Metrics Dashboard**: Track and visualize personal health metrics
+- **Multilingual Support**: Get medical information in 11 different languages
 
 ## Setup
 
@@ -98,6 +101,28 @@ The application includes a BlackboxAI integration directly in the Python backend
 - Save visualizations for future reference
 - View gallery of saved visualizations
 
+### Chatbot Interface
+- Interact with the AI using a familiar chat interface
+- See real-time typing indicators as the AI responds
+- Get quick responses to medical questions
+- Use voice commands to speak with the assistant
+- Switch AI providers on-the-fly to compare responses
+- Save and export chat conversations
+
+### Health Dashboard
+- Track key health metrics like BMI, blood pressure, heart rate, and oxygen saturation
+- Visualize health data over time with interactive charts
+- Receive personalized health recommendations based on your data
+- View recent consultations and upcoming appointments
+- Set health goals and track progress
+
+### Multilingual Support
+- Get medical information in 11 different languages
+- Automatic language detection for input text
+- Translate AI responses to your preferred language
+- Preserve medical terminology during translation
+- Special handling for medical terms to ensure accuracy
+
 ## Technical Architecture
 
 ### Backend
@@ -106,6 +131,7 @@ The application includes a BlackboxAI integration directly in the Python backend
 - **Flask-Login**: User authentication
 - **Pillow/OpenCV**: Image processing
 - **SQLite/JSON**: Data storage
+- **Googletrans**: Language translation
 
 ### Frontend
 - **Bootstrap**: UI framework
@@ -118,6 +144,19 @@ The application includes a BlackboxAI integration directly in the Python backend
 - **Google**: Gemini models (requires API key)
 - **BlackboxAI**: Various AI models including GPT-4o, Claude, Gemini, and BlackboxAI's own model (no API key required)
 
+### Supported Languages
+- English
+- Spanish
+- French
+- German
+- Chinese (Simplified)
+- Japanese
+- Arabic
+- Russian
+- Portuguese
+- Hindi
+- Swahili
+
 ## Medical Disclaimer
 
 This application provides information for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical concerns.
@@ -125,90 +164,6 @@ This application provides information for educational purposes only and is not a
 ## Important Disclaimer
 
 This application is for **educational purposes only** and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
-
-## Setup Instructions
-
-### Prerequisites
-
-- Python 3.8 or higher
-- pip (Python package installer)
-
-### Installation
-
-1. Clone this repository
-```
-git clone <repository-url>
-cd medicalai-assistant
-```
-
-2. Create a virtual environment (recommended)
-```
-python -m venv venv
-```
-
-3. Activate the virtual environment
-   - Windows:
-   ```
-   venv\Scripts\activate
-   ```
-   - macOS/Linux:
-   ```
-   source venv/bin/activate
-   ```
-
-4. Install dependencies
-```
-pip install -r requirements.txt
-```
-
-5. Set up environment variables by editing the `.env` file:
-   - Add your API keys to the `.env` file:
-   ```
-   OPENAI_API_KEY=your_openai_api_key_here
-   COHERE_API_KEY=your_cohere_api_key_here
-   GOOGLE_API_KEY=your_google_api_key_here
-   ```
-   Note: BlackboxAI doesn't require an API key as it uses the free version.
-
-### Running the Application
-
-1. Start the Flask development server
-```
-flask run
-```
-
-2. Open your web browser and navigate to:
-```
-http://127.0.0.1:5000
-```
-
-## Usage
-
-1. **Selecting an AI Provider**: Choose between OpenAI, Cohere, Google Gemini, or BlackboxAI models
-2. **Symptom Analysis**: Enter your symptoms in detail in the symptom analysis section and click "Analyze Symptoms"
-3. **Treatment Information**: Enter a medical condition in the treatment information section and click "Get Treatment Info"
-4. **Medical Research**: Enter a disease name in the medical research section and click "Research Disease"
-
-## Supported AI Providers
-
-- **OpenAI**: Uses GPT-4 or GPT-3.5-Turbo models
-- **Cohere**: Uses Command models for natural language tasks
-- **Google**: Uses Gemini models for comprehensive analysis
-- **BlackboxAI**: Uses multiple models including GPT-4o, Claude Sonnet 3.5, Gemini Pro, and BlackboxAI's own model
-
-## Technical Details
-
-- **Backend**: Flask (Python)
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap
-- **AI Models**: 
-  - OpenAI GPT models (via LangChain)
-  - Cohere Command models (via LangChain)
-  - Google Gemini models (via LangChain)
-  - BlackboxAI models (via direct API integration)
-
-## License
-
-This project is for educational purposes only.
 
 ## Author
 

@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedicalAI Assistant - Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="container mt-5">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-user-circle"></i> User Profile</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-2 text-center">
+                                <img src="{{ user_profile.avatar or url_for('static', filename='img/default-avatar.png') }}" alt="User Avatar" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px;">
+                            </div>
+                            <div class="col-md-5">
+                                <h5>{{ user_profile.name }}</h5>
+                                <p><strong>Username:</strong> {{ user_profile.username }}</p>
+                                <p><strong>Email:</strong> {{ user_profile.email }}</p>
+                                <p><strong>Role:</strong> {{ user_profile.role|capitalize }}</p>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="d-flex justify-content-end">
+                                    <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                        <i class="fas fa-edit"></i> Edit Profile
+                                    </button>
+                                    <button class="btn btn-outline-secondary">
+                                        <i class="fas fa-lock"></i> Change Password
+                                    </button>
+                                </div>
+                                <div class="mt-4">
+                                    <p><strong>Member since:</strong> {{ user_profile.created_at }}</p>
+                                    <p><strong>Last login:</strong> {{ user_profile.last_login }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card shadow">
+                    <div class="card-header bg-success text-white">
+                        <h4><i class="fas fa-chart-line"></i> Health Metrics</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Body Mass Index</h5>
+                                        <div class="display-4 mb-2" id="bmi-value">--.--</div>
+                                        <div class="text-muted" id="bmi-status">Not calculated</div>
+                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#bmiModal">
+                                            Calculate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Blood Pressure</h5>
+                                        <div class="display-4 mb-2" id="bp-value">---/--</div>
+                                        <div class="text-muted" id="bp-status">Not recorded</div>
+                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#bpModal">
+                                            Record
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Heart Rate</h5>
+                                        <div class="display-4 mb-2" id="hr-value">--</div>
+                                        <div class="text-muted" id="hr-status">Not recorded</div>
+                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#hrModal">
+                                            Record
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card mb-3">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Oxygen Saturation</h5>
+                                        <div class="display-4 mb-2" id="spo2-value">--</div>
+                                        <div class="text-muted" id="spo2-status">Not recorded</div>
+                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#spo2Modal">
+                                            Record
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div id="health-metrics-chart" style="height: 350px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h4><i class="fas fa-file-medical"></i> Recent Consultations</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% if consultations %}
+                                {% for consultation in consultations %}
+                                <a href="/consultation/{{ consultation.id }}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1">{{ consultation.type|capitalize }} with Dr. {{ consultation.doctor_name }}</h5>
+                                        <small>{{ consultation.date }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ consultation.description }}</p>
+                                    <small>{{ consultation.status }}</small>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
+                                    <p>No recent consultations</p>
+                                    <a href="/consultation/new" class="btn btn-primary">Schedule Consultation</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-warning text-white">
+                        <h4><i class="fas fa-chart-pie"></i> Health Insights</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="health-insights-chart" style="height: 300px;"></div>
+                        <div class="mt-3">
+                            <h5>Recommendations:</h5>
+                            <ul class="list-group" id="health-recommendations">
+                                <li class="list-group-item">Complete your health profile to get personalized insights</li>
+                                <li class="list-group-item">Record regular health metrics for better monitoring</li>
+                                <li class="list-group-item">Schedule a comprehensive health check</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- BMI Calculation Modal -->
+    <div class="modal fade" id="bmiModal" tabindex="-1" aria-labelledby="bmiModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bmiModalLabel">Calculate BMI</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bmiForm">
+                        <div class="mb-3">
+                            <label for="height" class="form-label">Height (cm)</label>
+                            <input type="number" class="form-control" id="height" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="weight" class="form-label">Weight (kg)</label>
+                            <input type="number" class="form-control" id="weight" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="calculate-bmi">Calculate</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Blood Pressure Modal -->
+    <div class="modal fade" id="bpModal" tabindex="-1" aria-labelledby="bpModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="bpModalLabel">Record Blood Pressure</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="bpForm">
+                        <div class="mb-3">
+                            <label for="systolic" class="form-label">Systolic (mmHg)</label>
+                            <input type="number" class="form-control" id="systolic" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="diastolic" class="form-label">Diastolic (mmHg)</label>
+                            <input type="number" class="form-control" id="diastolic" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="record-bp">Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // BMI Calculation
+            document.getElementById('calculate-bmi').addEventListener('click', function() {
+                const height = parseFloat(document.getElementById('height').value);
+                const weight = parseFloat(document.getElementById('weight').value);
+                
+                if (height && weight) {
+                    const heightInMeters = height / 100;
+                    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
+                    
+                    document.getElementById('bmi-value').textContent = bmi;
+                    
+                    let status = '';
+                    if (bmi < 18.5) {
+                        status = 'Underweight';
+                    } else if (bmi < 25) {
+                        status = 'Normal weight';
+                    } else if (bmi < 30) {
+                        status = 'Overweight';
+                    } else {
+                        status = 'Obese';
+                    }
+                    
+                    document.getElementById('bmi-status').textContent = status;
+                    
+                    // Save BMI data (simplified for demo)
+                    saveHealthMetric('bmi', bmi, status);
+                    
+                    // Close the modal
+                    bootstrap.Modal.getInstance(document.getElementById('bmiModal')).hide();
+                }
+            });
+            
+            // Blood Pressure Recording
+            document.getElementById('record-bp').addEventListener('click', function() {
+                const systolic = parseInt(document.getElementById('systolic').value);
+                const diastolic = parseInt(document.getElementById('diastolic').value);
+                
+                if (systolic && diastolic) {
+                    const bpValue = `${systolic}/${diastolic}`;
+                    document.getElementById('bp-value').textContent = bpValue;
+                    
+                    let status = '';
+                    if (systolic < 120 && diastolic < 80) {
+                        status = 'Normal';
+                    } else if ((systolic >= 120 && systolic <= 129) && diastolic < 80) {
+                        status = 'Elevated';
+                    } else if ((systolic >= 130 && systolic <= 139) || (diastolic >= 80 && diastolic <= 89)) {
+                        status = 'Stage 1 Hypertension';
+                    } else if (systolic >= 140 || diastolic >= 90) {
+                        status = 'Stage 2 Hypertension';
+                    }
+                    
+                    document.getElementById('bp-status').textContent = status;
+                    
+                    // Save BP data (simplified for demo)
+                    saveHealthMetric('bp', bpValue, status);
+                    
+                    // Close the modal
+                    bootstrap.Modal.getInstance(document.getElementById('bpModal')).hide();
+                }
+            });
+            
+            // Function to save health metric (simplified)
+            function saveHealthMetric(type, value, status) {
+                console.log(`Saving ${type} metric: ${value} (${status})`);
+                // In a real app, this would make an API call to save the data
+                
+                // Update the health metrics chart
+                updateHealthMetricsChart();
+            }
+            
+            // Initialize health metrics chart
+            function initHealthMetricsChart() {
+                const trace1 = {
+                    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    y: [null, null, null, null, null, null, null, null, null],
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'BMI',
+                    line: {color: 'rgb(49, 130, 189)'}
+                };
+                
+                const trace2 = {
+                    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    y: [null, null, null, null, null, null, null, null, null],
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Blood Pressure (Systolic)',
+                    line: {color: 'rgb(204, 0, 0)'}
+                };
+                
+                const data = [trace1, trace2];
+                
+                const layout = {
+                    title: 'Health Metrics Over Time',
+                    xaxis: {
+                        title: 'Month'
+                    },
+                    yaxis: {
+                        title: 'Value'
+                    },
+                    height: 350,
+                    margin: {
+                        l: 50,
+                        r: 50,
+                        b: 50,
+                        t: 50,
+                        pad: 4
+                    }
+                };
+                
+                Plotly.newPlot('health-metrics-chart', data, layout);
+            }
+            
+            // Initialize health insights chart
+            function initHealthInsightsChart() {
+                const data = [{
+                    values: [20, 25, 15, 40],
+                    labels: ['Diet', 'Exercise', 'Sleep', 'Mindfulness'],
+                    type: 'pie',
+                    marker: {
+                        colors: ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)']
+                    }
+                }];
+                
+                const layout = {
+                    title: 'Health Focus Areas',
+                    height: 300,
+                    margin: {
+                        l: 20,
+                        r: 20,
+                        b: 20,
+                        t: 50,
+                        pad: 4
+                    }
+                };
+                
+                Plotly.newPlot('health-insights-chart', data, layout);
+            }
+            
+            // Function to update health metrics chart (simplified)
+            function updateHealthMetricsChart() {
+                // In a real app, this would fetch updated data from the server
+                const updatedBMI = [21.5, 22.1, 22.8, 23.2, 23.0, 22.7, 22.5, 21.9, 21.7];
+                const updatedBP = [120, 118, 122, 125, 119, 121, 118, 120, 117];
+                
+                Plotly.update('health-metrics-chart', {
+                    'y': [updatedBMI, updatedBP]
+                }, {}, [0, 1]);
+            }
+            
+            // Initialize charts
+            initHealthMetricsChart();
+            initHealthInsightsChart();
+        });
+    </script>
+</body>
+</html> 

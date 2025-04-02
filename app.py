@@ -537,5 +537,193 @@ def blackbox_models():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Language Management Endpoints
+@app.route('/api/languages', methods=['GET'])
+def get_languages():
+    """Get supported languages"""
+    try:
+        languages = medical_agent.get_supported_languages()
+        return jsonify({"languages": languages})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/set_language', methods=['POST'])
+@login_required
+def set_language():
+    """Set preferred language for a user"""
+    data = request.json
+    language_code = data.get('language_code', 'en')
+    
+    try:
+        success = medical_agent.change_language(language_code)
+        if success:
+            # Also store the language preference in user's profile
+            user_profile = {"preferred_language": language_code}
+            medical_agent.update_user_profile(current_user.id, user_profile)
+            return jsonify({"result": f"Language set to {language_code}"})
+        else:
+            return jsonify({"error": "Invalid language code"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/translate', methods=['POST'])
+@login_required
+def translate_text():
+    """Translate text to selected language"""
+    data = request.json
+    text = data.get('text', '')
+    target_language = data.get('target_language', None)
+    
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+    
+    try:
+        translated_text = medical_agent.translate_text(text, target_language)
+        return jsonify({"result": translated_text})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/detect_language', methods=['POST'])
+@login_required
+def detect_language():
+    """Detect language of text"""
+    data = request.json
+    text = data.get('text', '')
+    
+    if not text:
+        return jsonify({"error": "No text provided"}), 400
+    
+    try:
+        detected_language = medical_agent.detect_language(text)
+        return jsonify({"language_code": detected_language})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Add routes for multilingual versions of existing endpoints
+@app.route('/api/diagnose_translated', methods=['POST'])
+@login_required
+def diagnose_translated():
+    """Analyze symptoms and return results in user's preferred language"""
+    data = request.json
+    symptoms = data.get('symptoms', '')
+    language = data.get('language', None)
+    
+    if not symptoms:
+        return jsonify({"error": "No symptoms provided"}), 400
+    
+    try:
+        diagnosis = medical_agent.diagnose(symptoms, language)
+        
+        # If visualization data is requested
+        include_vis = data.get('include_visualization', False)
+        visualization = None
+        
+        if include_vis:
+            # Extract structured symptom data
+            symptom_data = medical_agent.extract_visualization_data(diagnosis, data_type="symptoms")
+            visualization = medical_agent.generate_symptom_visualization(symptom_data)
+        
+        response = {"result": diagnosis}
+        if visualization:
+            response["visualization"] = visualization
+            
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/treatment_translated', methods=['POST'])
+@login_required
+def treatment_translated():
+    """Get treatment information in user's preferred language"""
+    data = request.json
+    condition = data.get('condition', '')
+    language = data.get('language', None)
+    
+    if not condition:
+        return jsonify({"error": "No condition provided"}), 400
+    
+    try:
+        treatment = medical_agent.recommend_treatment(condition, language)
+        
+        # If visualization data is requested
+        include_vis = data.get('include_visualization', False)
+        visualization = None
+        
+        if include_vis:
+            # Extract structured treatment data
+            treatment_data = medical_agent.extract_visualization_data(treatment, data_type="treatments")
+            visualization = medical_agent.generate_treatment_visualization(treatment_data)
+        
+        response = {"result": treatment}
+        if visualization:
+            response["visualization"] = visualization
+            
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/research_translated', methods=['POST'])
+@login_required
+def research_translated():
+    """Get disease research information in user's preferred language"""
+    data = request.json
+    disease = data.get('disease', '')
+    language = data.get('language', None)
+    
+    if not disease:
+        return jsonify({"error": "No disease provided"}), 400
+    
+    try:
+        research_info = medical_agent.research_disease(disease, language)
+        
+        # If visualization data is requested
+        include_vis = data.get('include_visualization', False)
+        visualization = None
+        
+        if include_vis:
+            # Extract structured progression data
+            progression_data = medical_agent.extract_visualization_data(research_info, data_type="progression")
+            visualization = medical_agent.generate_progression_visualization(progression_data)
+        
+        response = {"result": research_info}
+        if visualization:
+            response["visualization"] = visualization
+            
+        return jsonify(response)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Language UI routes
+@app.route('/language', methods=['GET'])
+@login_required
+def language_settings():
+    """Language settings page"""
+    return render_template('language.html')
+
+# New chatbot UI route
+@app.route('/chatbot', methods=['GET'])
+@login_required
+def chatbot():
+    """AI chatbot interface"""
+    return render_template('chatbot.html')
+
+# User dashboard route
+@app.route('/dashboard', methods=['GET'])
+@login_required
+def dashboard():
+    """User health dashboard"""
+    # Get user profile information
+    user_result = medical_agent.get_user(current_user.id)
+    
+    if user_result.get('success', False):
+        user_profile = user_result.get('user', {})
+        # Get recent consultations (placeholder data for now)
+        consultations = []  # In a real app, this would fetch from the database
+        
+        return render_template('dashboard.html', user_profile=user_profile, consultations=consultations)
+    else:
+        flash('Error loading user profile', 'danger')
+        return redirect(url_for('index'))
+
 if __name__ == '__main__':
     app.run(debug=True) 
