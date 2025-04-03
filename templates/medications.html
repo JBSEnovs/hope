@@ -3,122 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedicalAI Assistant - Medication Reminders</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <title>Medications - Medical AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
     {% include 'navbar.html' %}
-    
-    <div class="container mt-5">
+
+    <div class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0"><i class="fas fa-pills me-2"></i>Medication Management</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
+                <i class="fas fa-plus me-2"></i>Add Medication
+            </button>
+        </div>
+
         <div class="row">
             <div class="col-lg-12 mb-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h1><i class="fas fa-pills"></i> Medication Reminders</h1>
-                    <div>
-                        <a href="{{ url_for('generate_medication_report') }}" class="btn btn-success me-2" target="_blank">
-                            <i class="fas fa-file-pdf me-1"></i> Download Report
-                        </a>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
-                            <i class="fas fa-plus"></i> Add Medication
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-primary">Current Medications</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="medicationsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Dosage</th>
+                                        <th>Frequency</th>
+                                        <th>Started</th>
+                                        <th>Ends</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medicationsTableBody">
+                                    <!-- Medications will be loaded via JavaScript -->
+                                    <tr>
+                                        <td colspan="7" class="text-center">Loading medications...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medication Details -->
+        <div class="row" id="medicationDetails" style="display: none;">
+            <div class="col-lg-12 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 text-primary" id="detailsMedicationName">Medication Details</h5>
+                        <button class="btn btn-sm btn-outline-secondary" id="closeDetailsBtn">
+                            <i class="fas fa-times"></i>
                         </button>
                     </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row mb-4">
-            <div class="col-lg-12">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-clock"></i> Upcoming Medications</h4>
-                    </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="upcoming-medications">
-                                <thead>
-                                    <tr>
-                                        <th>Medication</th>
-                                        <th>Dosage</th>
-                                        <th>Frequency</th>
-                                        <th>Next Dose</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Will be populated via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="no-upcoming-meds" class="text-center py-4 d-none">
-                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                            <p>No medications due in the next 24 hours</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h4><i class="fas fa-list"></i> All Medications</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="all-medications">
-                                <thead>
-                                    <tr>
-                                        <th>Medication</th>
-                                        <th>Dosage</th>
-                                        <th>Frequency</th>
-                                        <th>Start Date</th>
-                                        <th>End Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Will be populated via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="no-medications" class="text-center py-4 d-none">
-                            <i class="fas fa-pills fa-3x text-muted mb-3"></i>
-                            <p>No medications added yet</p>
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
-                                Add Your First Medication
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h4><i class="fas fa-chart-line"></i> Adherence</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="text-center mb-4">
-                            <div class="adherence-circle">
-                                <div class="adherence-percent" id="adherence-rate">0%</div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Basic Information</h6>
+                                <p><strong>Name:</strong> <span id="detailName"></span></p>
+                                <p><strong>Dosage:</strong> <span id="detailDosage"></span></p>
+                                <p><strong>Frequency:</strong> <span id="detailFrequency"></span></p>
+                                <p><strong>Start Date:</strong> <span id="detailStartDate"></span></p>
+                                <p><strong>End Date:</strong> <span id="detailEndDate"></span></p>
+                                <p><strong>Notes:</strong> <span id="detailNotes"></span></p>
                             </div>
-                            <p class="mt-2">Overall Adherence Rate</p>
+                            <div class="col-md-6">
+                                <h6 class="mb-3">Adherence History</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="historyTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="historyTableBody">
+                                            <!-- History will be loaded here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <button class="btn btn-sm btn-success mt-3">
+                                    <i class="fas fa-check me-2"></i>Mark as Taken Today
+                                </button>
+                            </div>
                         </div>
-                        
-                        <div id="adherence-chart" style="height: 250px;"></div>
-                        
-                        <div class="mt-3">
-                            <h5>Tips to Improve Adherence</h5>
-                            <ul class="list-group">
-                                <li class="list-group-item">Set daily reminders on your phone</li>
-                                <li class="list-group-item">Use a pill organizer to sort medications</li>
-                                <li class="list-group-item">Keep medications in a visible location</li>
-                                <li class="list-group-item">Track your doses in this app</li>
-                            </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Medication Adherence Analysis -->
+        <div class="row">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-primary">Adherence Statistics</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="position-relative" style="width: 150px; height: 150px;">
+                                <canvas id="adherenceChart"></canvas>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <h3 class="mb-0" id="adherencePercentage">85%</h3>
+                                    <p class="mb-0 small">Adherence</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-around text-center">
+                            <div>
+                                <h5 id="takenCount">5</h5>
+                                <p class="small text-muted">Taken</p>
+                            </div>
+                            <div>
+                                <h5 id="missedCount">1</h5>
+                                <p class="small text-muted">Missed</p>
+                            </div>
+                            <div>
+                                <h5 id="upcomingCount">14</h5>
+                                <p class="small text-muted">Upcoming</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 text-primary">Medication Schedule</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="scheduleCalendar">
+                            <!-- Simplified calendar view -->
+                            <div class="list-group">
+                                <div class="list-group-item border-0 d-flex align-items-center px-0 py-2">
+                                    <div class="me-3 bg-primary text-white rounded p-2">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">Today</h6>
+                                        <p class="text-muted mb-0 small">Aspirin (100mg) - Morning</p>
+                                        <p class="text-muted mb-0 small">Vitamin D (1000 IU) - With breakfast</p>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">Due Today</span>
+                                </div>
+                                
+                                <div class="list-group-item border-0 d-flex align-items-center px-0 py-2">
+                                    <div class="me-3 bg-primary text-white rounded p-2">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-0">Tomorrow</h6>
+                                        <p class="text-muted mb-0 small">Aspirin (100mg) - Morning</p>
+                                        <p class="text-muted mb-0 small">Vitamin D (1000 IU) - With breakfast</p>
+                                    </div>
+                                    <span class="badge bg-info">Upcoming</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -131,544 +178,389 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addMedicationModalLabel">Add Medication</h5>
+                    <h5 class="modal-title" id="addMedicationModalLabel">Add New Medication</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="add-medication-form">
-                        <div class="mb-3">
-                            <label for="med-name" class="form-label">Medication Name</label>
-                            <input type="text" class="form-control" id="med-name" required>
-                        </div>
-                        
+                    <form id="newMedicationForm">
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="med-dosage" class="form-label">Dosage</label>
-                                <input type="text" class="form-control" id="med-dosage" placeholder="e.g., 10mg, 1 tablet" required>
+                                <label for="medicationName" class="form-label">Medication Name</label>
+                                <input type="text" class="form-control" id="medicationName" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="med-frequency" class="form-label">Frequency</label>
-                                <select class="form-select" id="med-frequency" required>
-                                    <option value="">Select frequency</option>
-                                    <option value="every 4 hours">Every 4 hours</option>
-                                    <option value="every 6 hours">Every 6 hours</option>
-                                    <option value="every 8 hours">Every 8 hours</option>
-                                    <option value="every 12 hours">Every 12 hours</option>
-                                    <option value="daily">Once daily</option>
-                                    <option value="twice daily">Twice daily</option>
-                                    <option value="weekly">Weekly</option>
-                                    <option value="monthly">Monthly</option>
-                                    <option value="as needed">As needed</option>
+                                <label for="medicationDosage" class="form-label">Dosage</label>
+                                <input type="text" class="form-control" id="medicationDosage" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="medicationFrequency" class="form-label">Frequency</label>
+                                <select class="form-select" id="medicationFrequency" required>
+                                    <option value="">Choose frequency...</option>
+                                    <option value="Once daily">Once daily</option>
+                                    <option value="Twice daily">Twice daily</option>
+                                    <option value="Three times daily">Three times daily</option>
+                                    <option value="Four times daily">Four times daily</option>
+                                    <option value="Every other day">Every other day</option>
+                                    <option value="As needed">As needed</option>
+                                    <option value="Weekly">Weekly</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="medicationType" class="form-label">Medication Type</label>
+                                <select class="form-select" id="medicationType">
+                                    <option value="Pill">Pill/Tablet</option>
+                                    <option value="Capsule">Capsule</option>
+                                    <option value="Liquid">Liquid</option>
+                                    <option value="Injection">Injection</option>
+                                    <option value="Topical">Topical</option>
+                                    <option value="Inhaler">Inhaler</option>
+                                    <option value="Other">Other</option>
                                 </select>
                             </div>
                         </div>
-                        
                         <div class="row mb-3">
                             <div class="col-md-6">
-                                <label for="med-start-date" class="form-label">Start Date</label>
-                                <input type="text" class="form-control datepicker" id="med-start-date" required>
+                                <label for="startDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="startDate" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="med-end-date" class="form-label">End Date (optional)</label>
-                                <input type="text" class="form-control datepicker" id="med-end-date">
+                                <label for="endDate" class="form-label">End Date (Optional)</label>
+                                <input type="date" class="form-control" id="endDate">
                             </div>
                         </div>
-                        
                         <div class="mb-3">
-                            <label for="med-notes" class="form-label">Notes (optional)</label>
-                            <textarea class="form-control" id="med-notes" rows="3"></textarea>
+                            <label for="medicationNotes" class="form-label">Notes (Optional)</label>
+                            <textarea class="form-control" id="medicationNotes" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="reminderCheck">
+                                <label class="form-check-label" for="reminderCheck">
+                                    Set reminders for this medication
+                                </label>
+                            </div>
+                        </div>
+                        <div id="reminderSettings" class="card p-3 mb-3" style="display:none;">
+                            <h6>Reminder Settings</h6>
+                            <div class="mb-3">
+                                <label class="form-label">Reminder Times</label>
+                                <div class="d-flex gap-2 mb-2">
+                                    <input type="time" class="form-control" placeholder="Add time">
+                                    <button type="button" class="btn btn-outline-secondary">Add</button>
+                                </div>
+                                <div id="reminderTimesList" class="d-flex flex-wrap gap-2">
+                                    <!-- Times will appear here -->
+                                </div>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label">Notification Method</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="emailNotification" checked>
+                                    <label class="form-check-label" for="emailNotification">
+                                        Email notifications
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="appNotification" checked>
+                                    <label class="form-check-label" for="appNotification">
+                                        In-app notifications
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="save-medication">Save Medication</button>
+                    <button type="button" class="btn btn-primary" id="saveMedicationBtn">Save Medication</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Medication Details Modal -->
-    <div class="modal fade" id="medicationDetailsModal" tabindex="-1" aria-labelledby="medicationDetailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="medicationDetailsModalLabel">Medication Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5 id="detail-med-name">Medication Name</h5>
-                            <p><strong>Dosage:</strong> <span id="detail-dosage"></span></p>
-                            <p><strong>Frequency:</strong> <span id="detail-frequency"></span></p>
-                            <p><strong>Start Date:</strong> <span id="detail-start-date"></span></p>
-                            <p><strong>End Date:</strong> <span id="detail-end-date"></span></p>
-                            <p><strong>Notes:</strong> <span id="detail-notes"></span></p>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h6 class="mb-0">Adherence Statistics</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-3">
-                                        <div class="text-center">
-                                            <h2 id="detail-total-doses">0</h2>
-                                            <small>Total Doses</small>
-                                        </div>
-                                        <div class="text-center">
-                                            <h2 id="detail-taken-doses" class="text-success">0</h2>
-                                            <small>Taken</small>
-                                        </div>
-                                        <div class="text-center">
-                                            <h2 id="detail-missed-doses" class="text-danger">0</h2>
-                                            <small>Missed</small>
-                                        </div>
-                                    </div>
-                                    <div class="progress mb-3">
-                                        <div id="detail-adherence-progress" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
-                                    </div>
-                                    <p class="text-center"><span id="detail-adherence-rate">0%</span> Adherence Rate</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <h6>Medication History</h6>
-                        <div class="table-responsive">
-                            <table class="table table-sm" id="medication-history">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <!-- Will be populated via JavaScript -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div id="no-history" class="text-center py-2 d-none">
-                            <p class="text-muted">No medication history recorded yet</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-success" id="record-taken">Record as Taken</button>
-                    <button type="button" class="btn btn-danger" id="record-missed">Record as Missed</button>
-                    <button type="button" class="btn btn-primary" id="edit-medication">Edit Medication</button>
-                </div>
-            </div>
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 Medical AI Assistant. All rights reserved.</span>
         </div>
-    </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Current medication ID for details modal
-            let currentMedicationId = null;
-            
-            // Initialize date pickers
-            flatpickr(".datepicker", {
-                dateFormat: "Y-m-d",
-                allowInput: true
+            // Toggle reminder settings
+            document.getElementById('reminderCheck').addEventListener('change', function() {
+                document.getElementById('reminderSettings').style.display = this.checked ? 'block' : 'none';
             });
             
-            // Load medications when page loads
-            loadMedications();
-            
-            // Add medication form submission
-            document.getElementById('save-medication').addEventListener('click', function() {
-                const form = document.getElementById('add-medication-form');
-                
-                // Check form validity
-                if (!form.checkValidity()) {
-                    form.reportValidity();
-                    return;
-                }
-                
-                const medication = {
-                    name: document.getElementById('med-name').value,
-                    dosage: document.getElementById('med-dosage').value,
-                    frequency: document.getElementById('med-frequency').value,
-                    start_date: document.getElementById('med-start-date').value,
-                    end_date: document.getElementById('med-end-date').value || null,
-                    notes: document.getElementById('med-notes').value || null
-                };
-                
-                addMedication(medication);
+            // Close details button
+            document.getElementById('closeDetailsBtn').addEventListener('click', function() {
+                document.getElementById('medicationDetails').style.display = 'none';
             });
             
-            // Record medication as taken
-            document.getElementById('record-taken').addEventListener('click', function() {
-                if (currentMedicationId) {
-                    recordMedicationStatus(currentMedicationId, 'taken');
-                }
-            });
-            
-            // Record medication as missed
-            document.getElementById('record-missed').addEventListener('click', function() {
-                if (currentMedicationId) {
-                    recordMedicationStatus(currentMedicationId, 'missed');
-                }
-            });
-            
-            // Load medications from the server
-            function loadMedications() {
-                fetch('/api/medications')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.medications) {
-                            displayMedications(data.medications);
-                            displayDueMedications(data.medications);
-                            updateAdherenceRate(data.adherence_rate);
+            // Initialize adherence chart
+            const adherenceCtx = document.getElementById('adherenceChart').getContext('2d');
+            const adherenceChart = new Chart(adherenceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Taken', 'Missed'],
+                    datasets: [{
+                        data: [85, 15],
+                        backgroundColor: ['#1cc88a', '#e74a3b'],
+                        hoverBackgroundColor: ['#17a673', '#c93b2e'],
+                        hoverBorderColor: 'rgba(234, 236, 244, 1)',
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error loading medications:', error);
-                    });
-            }
+                    }
+                }
+            });
             
-            // Add a new medication
-            function addMedication(medication) {
-                fetch('/api/medications', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(medication)
-                })
+            // Fetch and display medications
+            fetchMedications();
+            
+            // Save medication button
+            document.getElementById('saveMedicationBtn').addEventListener('click', function() {
+                const form = document.getElementById('newMedicationForm');
+                if (form.checkValidity()) {
+                    addMedication();
+                } else {
+                    // Trigger validation UI
+                    form.reportValidity();
+                }
+            });
+        });
+        
+        // Function to fetch medications from API
+        function fetchMedications() {
+            fetch('/api/medications')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Close modal and reload medications
-                        bootstrap.Modal.getInstance(document.getElementById('addMedicationModal')).hide();
-                        loadMedications();
-                        
-                        // Reset form
-                        document.getElementById('add-medication-form').reset();
+                        displayMedications(data.medications);
                     } else {
-                        alert('Error: ' + data.error);
+                        console.error('Failed to fetch medications:', data.error);
                     }
                 })
                 .catch(error => {
-                    console.error('Error adding medication:', error);
+                    console.error('Error fetching medications:', error);
                 });
+        }
+        
+        // Function to display medications in the table
+        function displayMedications(medications) {
+            const tableBody = document.getElementById('medicationsTableBody');
+            
+            if (medications.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <p class="my-3">No medications added yet.</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMedicationModal">
+                                <i class="fas fa-plus me-2"></i>Add Your First Medication
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
             }
             
-            // Display all medications in the table
-            function displayMedications(medications) {
-                const tbody = document.querySelector('#all-medications tbody');
-                const noMedsDiv = document.getElementById('no-medications');
+            tableBody.innerHTML = '';
+            medications.forEach(med => {
+                // Determine medication status
+                let statusBadge = '';
+                let latestStatus = 'unknown';
                 
-                tbody.innerHTML = '';
-                
-                if (medications.length === 0) {
-                    noMedsDiv.classList.remove('d-none');
-                    return;
+                if (med.history && med.history.length > 0) {
+                    const today = new Date().toISOString().split('T')[0];
+                    const todayRecord = med.history.find(h => h.date === today);
+                    
+                    if (todayRecord) {
+                        latestStatus = todayRecord.status;
+                        if (latestStatus === 'taken') {
+                            statusBadge = '<span class="badge bg-success">Taken Today</span>';
+                        } else if (latestStatus === 'missed') {
+                            statusBadge = '<span class="badge bg-danger">Missed Today</span>';
+                        }
+                    } else {
+                        statusBadge = '<span class="badge bg-warning text-dark">Due Today</span>';
+                    }
+                } else {
+                    statusBadge = '<span class="badge bg-secondary">No Records</span>';
                 }
                 
-                noMedsDiv.classList.add('d-none');
+                // Format end date
+                const endDate = med.end_date ? med.end_date : 'Ongoing';
                 
-                medications.forEach(med => {
-                    const row = document.createElement('tr');
-                    
-                    row.innerHTML = `
+                tableBody.innerHTML += `
+                    <tr data-id="${med.id}">
                         <td>${med.name}</td>
                         <td>${med.dosage}</td>
                         <td>${med.frequency}</td>
-                        <td>${formatDate(med.start_date)}</td>
-                        <td>${med.end_date ? formatDate(med.end_date) : '-'}</td>
+                        <td>${med.start_date}</td>
+                        <td>${endDate}</td>
+                        <td>${statusBadge}</td>
                         <td>
-                            <button class="btn btn-sm btn-info me-1 view-medication" data-id="${med.id}">
+                            <button class="btn btn-sm btn-success me-1 take-btn" title="Mark as taken">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-info me-1 view-btn" title="View details">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger delete-medication" data-id="${med.id}">
+                            <button class="btn btn-sm btn-danger delete-btn" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
-                    `;
-                    
-                    tbody.appendChild(row);
-                });
-                
-                // Add event listeners to view buttons
-                document.querySelectorAll('.view-medication').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const medicationId = this.getAttribute('data-id');
-                        showMedicationDetails(medicationId);
-                    });
-                });
-                
-                // Add event listeners to delete buttons
-                document.querySelectorAll('.delete-medication').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const medicationId = this.getAttribute('data-id');
-                        if (confirm('Are you sure you want to delete this medication?')) {
-                            deleteMedication(medicationId);
-                        }
-                    });
-                });
-            }
+                    </tr>
+                `;
+            });
             
-            // Display due medications
-            function displayDueMedications(medications) {
-                const tbody = document.querySelector('#upcoming-medications tbody');
-                const noUpcomingDiv = document.getElementById('no-upcoming-meds');
-                
-                tbody.innerHTML = '';
-                
-                // Filter medications due in next 24 hours
-                const dueMedications = medications.filter(med => {
-                    // This is a simplified check - in a real app, use the server's logic
-                    const startDate = new Date(med.start_date);
-                    const now = new Date();
-                    return startDate <= now && (!med.end_date || new Date(med.end_date) >= now);
+            // Add event listeners to buttons
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medId = this.closest('tr').dataset.id;
+                    viewMedicationDetails(medId);
                 });
-                
-                if (dueMedications.length === 0) {
-                    noUpcomingDiv.classList.remove('d-none');
-                    return;
+            });
+            
+            document.querySelectorAll('.take-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medId = this.closest('tr').dataset.id;
+                    markAsTaken(medId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const medId = this.closest('tr').dataset.id;
+                    deleteMedication(medId);
+                });
+            });
+        }
+        
+        // Function to add a new medication
+        function addMedication() {
+            const medicationData = {
+                name: document.getElementById('medicationName').value,
+                dosage: document.getElementById('medicationDosage').value,
+                frequency: document.getElementById('medicationFrequency').value,
+                start_date: document.getElementById('startDate').value,
+                end_date: document.getElementById('endDate').value || null,
+                notes: document.getElementById('medicationNotes').value || null
+            };
+            
+            fetch('/api/medications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(medicationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and refresh medications
+                    bootstrap.Modal.getInstance(document.getElementById('addMedicationModal')).hide();
+                    fetchMedications();
+                    // Reset form
+                    document.getElementById('newMedicationForm').reset();
+                } else {
+                    console.error('Failed to add medication:', data.error);
+                    alert('Failed to add medication. Please try again.');
                 }
-                
-                noUpcomingDiv.classList.add('d-none');
-                
-                dueMedications.forEach(med => {
-                    const row = document.createElement('tr');
+            })
+            .catch(error => {
+                console.error('Error adding medication:', error);
+                alert('An error occurred. Please try again.');
+            });
+        }
+        
+        // Function to view medication details
+        function viewMedicationDetails(medicationId) {
+            fetch(`/api/medications/${medicationId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        displayMedicationDetails(data.medication);
+                    } else {
+                        console.error('Failed to fetch medication details:', data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching medication details:', error);
+                });
+        }
+        
+        // Function to display medication details
+        function displayMedicationDetails(medication) {
+            const detailsSection = document.getElementById('medicationDetails');
+            
+            // Set basic details
+            document.getElementById('detailsMedicationName').textContent = medication.name;
+            document.getElementById('detailName').textContent = medication.name;
+            document.getElementById('detailDosage').textContent = medication.dosage;
+            document.getElementById('detailFrequency').textContent = medication.frequency;
+            document.getElementById('detailStartDate').textContent = medication.start_date;
+            document.getElementById('detailEndDate').textContent = medication.end_date || 'Ongoing';
+            document.getElementById('detailNotes').textContent = medication.notes || 'No notes provided';
+            
+            // Display history
+            const historyBody = document.getElementById('historyTableBody');
+            historyBody.innerHTML = '';
+            
+            if (medication.history && medication.history.length > 0) {
+                medication.history.forEach(record => {
+                    const statusClass = record.status === 'taken' ? 'text-success' : 'text-danger';
+                    const statusIcon = record.status === 'taken' ? 'fa-check-circle' : 'fa-times-circle';
                     
-                    row.innerHTML = `
-                        <td>${med.name}</td>
-                        <td>${med.dosage}</td>
-                        <td>${med.frequency}</td>
-                        <td>Due soon</td>
-                        <td>
-                            <button class="btn btn-sm btn-success me-1 take-medication" data-id="${med.id}">
-                                <i class="fas fa-check"></i> Take
-                            </button>
-                            <button class="btn btn-sm btn-danger skip-medication" data-id="${med.id}">
-                                <i class="fas fa-times"></i> Skip
-                            </button>
-                        </td>
+                    historyBody.innerHTML += `
+                        <tr>
+                            <td>${record.date}</td>
+                            <td class="${statusClass}">
+                                <i class="fas ${statusIcon} me-1"></i>
+                                ${record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                            </td>
+                        </tr>
                     `;
-                    
-                    tbody.appendChild(row);
                 });
-                
-                // Add event listeners to take buttons
-                document.querySelectorAll('.take-medication').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const medicationId = this.getAttribute('data-id');
-                        recordMedicationStatus(medicationId, 'taken');
-                    });
-                });
-                
-                // Add event listeners to skip buttons
-                document.querySelectorAll('.skip-medication').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const medicationId = this.getAttribute('data-id');
-                        recordMedicationStatus(medicationId, 'missed');
-                    });
-                });
+            } else {
+                historyBody.innerHTML = `
+                    <tr>
+                        <td colspan="2" class="text-center">No history records available</td>
+                    </tr>
+                `;
             }
             
-            // Update adherence rate display
-            function updateAdherenceRate(rate) {
-                document.getElementById('adherence-rate').textContent = `${rate}%`;
-                
-                // Update the adherence circle with CSS custom property
-                document.querySelector('.adherence-circle').style.setProperty('--adherence-rate', rate);
-                
-                // Create the adherence chart
-                createAdherenceChart(rate);
+            // Show details section
+            detailsSection.style.display = 'block';
+            detailsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Function to mark medication as taken
+        function markAsTaken(medicationId) {
+            // This would be implemented with a real API
+            alert('Medication marked as taken (feature to be implemented)');
+            fetchMedications();
+        }
+        
+        // Function to delete medication
+        function deleteMedication(medicationId) {
+            if (confirm('Are you sure you want to delete this medication?')) {
+                // This would be implemented with a real API
+                alert('Medication deleted (feature to be implemented)');
+                fetchMedications();
             }
-            
-            // Create adherence chart
-            function createAdherenceChart(rate) {
-                const data = [{
-                    values: [rate, 100 - rate],
-                    labels: ['Taken', 'Missed'],
-                    type: 'pie',
-                    marker: {
-                        colors: ['#28a745', '#dc3545']
-                    },
-                    hole: 0.4
-                }];
-                
-                const layout = {
-                    showlegend: true,
-                    height: 250,
-                    margin: {
-                        l: 0,
-                        r: 0,
-                        b: 20,
-                        t: 0,
-                        pad: 0
-                    }
-                };
-                
-                Plotly.newPlot('adherence-chart', data, layout);
-            }
-            
-            // Show medication details
-            function showMedicationDetails(medicationId) {
-                fetch(`/api/medications/${medicationId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.medication) {
-                            const med = data.medication;
-                            
-                            // Set current medication ID for actions
-                            currentMedicationId = med.id;
-                            
-                            // Fill in medication details
-                            document.getElementById('detail-med-name').textContent = med.name;
-                            document.getElementById('detail-dosage').textContent = med.dosage;
-                            document.getElementById('detail-frequency').textContent = med.frequency;
-                            document.getElementById('detail-start-date').textContent = formatDate(med.start_date);
-                            document.getElementById('detail-end-date').textContent = med.end_date ? formatDate(med.end_date) : 'Not specified';
-                            document.getElementById('detail-notes').textContent = med.notes || 'No notes';
-                            
-                            // Fill in adherence stats
-                            const adherence = med.adherence;
-                            document.getElementById('detail-total-doses').textContent = adherence.total_doses;
-                            document.getElementById('detail-taken-doses').textContent = adherence.taken_doses;
-                            document.getElementById('detail-missed-doses').textContent = adherence.missed_doses;
-                            
-                            const adherenceRate = adherence.total_doses > 0 
-                                ? Math.round((adherence.taken_doses / adherence.total_doses) * 100) 
-                                : 0;
-                            
-                            document.getElementById('detail-adherence-rate').textContent = `${adherenceRate}%`;
-                            document.getElementById('detail-adherence-progress').style.width = `${adherenceRate}%`;
-                            
-                            // Fill in history
-                            const historyTbody = document.querySelector('#medication-history tbody');
-                            const noHistoryDiv = document.getElementById('no-history');
-                            
-                            historyTbody.innerHTML = '';
-                            
-                            if (adherence.history.length === 0) {
-                                noHistoryDiv.classList.remove('d-none');
-                            } else {
-                                noHistoryDiv.classList.add('d-none');
-                                
-                                adherence.history.forEach(entry => {
-                                    const row = document.createElement('tr');
-                                    
-                                    row.innerHTML = `
-                                        <td>${formatDateTime(entry.date)}</td>
-                                        <td>
-                                            <span class="badge ${entry.status === 'taken' ? 'bg-success' : 'bg-danger'}">
-                                                ${entry.status === 'taken' ? 'Taken' : 'Missed'}
-                                            </span>
-                                        </td>
-                                    `;
-                                    
-                                    historyTbody.appendChild(row);
-                                });
-                            }
-                            
-                            // Show the modal
-                            new bootstrap.Modal(document.getElementById('medicationDetailsModal')).show();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading medication details:', error);
-                    });
-            }
-            
-            // Record medication as taken or missed
-            function recordMedicationStatus(medicationId, status) {
-                fetch(`/api/medications/${medicationId}/${status}`, {
-                    method: 'POST'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // If details modal is open, update it
-                        if (bootstrap.Modal.getInstance(document.getElementById('medicationDetailsModal'))) {
-                            showMedicationDetails(medicationId);
-                        }
-                        
-                        // Reload medications
-                        loadMedications();
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error(`Error recording medication as ${status}:`, error);
-                });
-            }
-            
-            // Delete a medication
-            function deleteMedication(medicationId) {
-                fetch(`/api/medications/${medicationId}`, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        loadMedications();
-                    } else {
-                        alert('Error: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error deleting medication:', error);
-                });
-            }
-            
-            // Format date for display
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                return date.toLocaleDateString();
-            }
-            
-            // Format date and time for display
-            function formatDateTime(dateString) {
-                const date = new Date(dateString);
-                return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-            }
-        });
+        }
     </script>
-    
-    <style>
-        .adherence-circle {
-            --adherence-rate: 0;
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: conic-gradient(
-                #28a745 calc(var(--adherence-rate) * 1%),
-                #dc3545 0
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .adherence-circle::before {
-            content: '';
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: white;
-        }
-        
-        .adherence-percent {
-            position: relative;
-            z-index: 2;
-            font-size: 2rem;
-            font-weight: bold;
-        }
-    </style>
 </body>
+</html> 
 </html> 

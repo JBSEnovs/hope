@@ -3,163 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MedicalAI Assistant - Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <title>Dashboard - Medical AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     {% include 'navbar.html' %}
-    
-    <div class="container mt-5">
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h4><i class="fas fa-user-circle"></i> User Profile</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-2 text-center">
-                                <img src="{{ user_profile.avatar or url_for('static', filename='img/default-avatar.png') }}" alt="User Avatar" class="img-fluid rounded-circle mb-3" style="width: 120px; height: 120px;">
-                            </div>
-                            <div class="col-md-5">
-                                <h5>{{ user_profile.name }}</h5>
-                                <p><strong>Username:</strong> {{ user_profile.username }}</p>
-                                <p><strong>Email:</strong> {{ user_profile.email }}</p>
-                                <p><strong>Role:</strong> {{ user_profile.role|capitalize }}</p>
-                            </div>
-                            <div class="col-md-5">
-                                <div class="d-flex justify-content-end">
-                                    <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                                        <i class="fas fa-edit"></i> Edit Profile
-                                    </button>
-                                    <button class="btn btn-outline-secondary">
-                                        <i class="fas fa-lock"></i> Change Password
-                                    </button>
-                                </div>
-                                <div class="mt-4">
-                                    <p><strong>Member since:</strong> {{ user_profile.created_at }}</p>
-                                    <p><strong>Last login:</strong> {{ user_profile.last_login }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card shadow">
-                    <div class="card-header bg-success text-white">
-                        <h4><i class="fas fa-chart-line"></i> Health Metrics</h4>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="card mb-3">
-                                    <div class="card-body text-center">
-                                        <h5 class="card-title">Body Mass Index</h5>
-                                        <div class="display-4 mb-2" id="bmi-value">--.--</div>
-                                        <div class="text-muted" id="bmi-status">Not calculated</div>
-                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#bmiModal">
-                                            Calculate
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card mb-3">
-                                    <div class="card-body text-center">
-                                        <h5 class="card-title">Blood Pressure</h5>
-                                        <div class="display-4 mb-2" id="bp-value">---/--</div>
-                                        <div class="text-muted" id="bp-status">Not recorded</div>
-                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#bpModal">
-                                            Record
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card mb-3">
-                                    <div class="card-body text-center">
-                                        <h5 class="card-title">Heart Rate</h5>
-                                        <div class="display-4 mb-2" id="hr-value">--</div>
-                                        <div class="text-muted" id="hr-status">Not recorded</div>
-                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#hrModal">
-                                            Record
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card mb-3">
-                                    <div class="card-body text-center">
-                                        <h5 class="card-title">Oxygen Saturation</h5>
-                                        <div class="display-4 mb-2" id="spo2-value">--</div>
-                                        <div class="text-muted" id="spo2-status">Not recorded</div>
-                                        <button class="btn btn-sm btn-primary mt-3" data-bs-toggle="modal" data-bs-target="#spo2Modal">
-                                            Record
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-4">
-                            <div class="col-md-12">
-                                <div id="health-metrics-chart" style="height: 350px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
+
+    <div class="container-fluid py-4">
         <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h4><i class="fas fa-file-medical"></i> Recent Consultations</h4>
-                    </div>
+            <!-- Sidebar -->
+            <div class="col-lg-2 mb-4">
+                <div class="card shadow-sm">
                     <div class="card-body">
-                        <div class="list-group">
-                            {% if consultations %}
-                                {% for consultation in consultations %}
-                                <a href="/consultation/{{ consultation.id }}" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h5 class="mb-1">{{ consultation.type|capitalize }} with Dr. {{ consultation.doctor_name }}</h5>
-                                        <small>{{ consultation.date }}</small>
+                        <div class="text-center mb-3">
+                            <div class="mb-3 rounded-circle bg-primary text-white mx-auto" style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                            <h5 class="mb-0">Demo User</h5>
+                            <p class="text-muted small">demo@example.com</p>
+                        </div>
+                        
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action active">
+                                <i class="fas fa-chart-line me-2"></i>Dashboard
+                            </a>
+                            <a href="{{ url_for('medications_page') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-pills me-2"></i>Medications
+                            </a>
+                            <a href="{{ url_for('chatbot') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-robot me-2"></i>AI Chatbot
+                            </a>
+                            <a href="{{ url_for('settings') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-cog me-2"></i>Settings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-10">
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h4 class="card-title">Health Overview</h4>
+                                <h6 class="card-subtitle mb-2 text-muted">April 3, 2024</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start-primary border-start-4">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            Medication Adherence</div>
+                                        <div class="h5 mb-0 font-weight-bold">85%</div>
+                                        <div class="text-muted small mt-1"><span class="text-success"><i class="fas fa-arrow-up me-1"></i>3%</span> since last week</div>
                                     </div>
-                                    <p class="mb-1">{{ consultation.description }}</p>
-                                    <small>{{ consultation.status }}</small>
-                                </a>
-                                {% endfor %}
-                            {% else %}
-                                <div class="text-center py-4">
-                                    <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
-                                    <p>No recent consultations</p>
-                                    <a href="/consultation/new" class="btn btn-primary">Schedule Consultation</a>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                                    </div>
                                 </div>
-                            {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start-success border-start-4">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            Blood Pressure</div>
+                                        <div class="h5 mb-0 font-weight-bold">120/80</div>
+                                        <div class="text-muted small mt-1">Last measured: Today</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-heart fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start-info border-start-4">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Active Medications</div>
+                                        <div class="h5 mb-0 font-weight-bold">2</div>
+                                        <div class="text-muted small mt-1">1 due today</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-pills fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card shadow-sm border-start-warning border-start-4">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            Upcoming Activities</div>
+                                        <div class="h5 mb-0 font-weight-bold">3</div>
+                                        <div class="text-muted small mt-1">Next: Doctor appointment (Apr 5)</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-warning text-white">
-                        <h4><i class="fas fa-chart-pie"></i> Health Insights</h4>
+                
+                <!-- Charts Row -->
+                <div class="row mb-4">
+                    <!-- Blood Pressure Chart -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Blood Pressure History</h6>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Last 6 Months
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMenuButton">
+                                        <li><a class="dropdown-item" href="#">Last Week</a></li>
+                                        <li><a class="dropdown-item" href="#">Last Month</a></li>
+                                        <li><a class="dropdown-item" href="#">Last 3 Months</a></li>
+                                        <li><a class="dropdown-item" href="#">Last 6 Months</a></li>
+                                        <li><a class="dropdown-item" href="#">Last Year</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="bloodPressureChart" width="100%" height="40"></canvas>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div id="health-insights-chart" style="height: 300px;"></div>
-                        <div class="mt-3">
-                            <h5>Recommendations:</h5>
-                            <ul class="list-group" id="health-recommendations">
-                                <li class="list-group-item">Complete your health profile to get personalized insights</li>
-                                <li class="list-group-item">Record regular health metrics for better monitoring</li>
-                                <li class="list-group-item">Schedule a comprehensive health check</li>
-                            </ul>
+                    
+                    <!-- Medication Adherence Chart -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Medication Adherence</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="medicationChart" width="100%" height="40"></canvas>
+                                <div class="mt-4 text-center small">
+                                    <span class="me-2">
+                                        <i class="fas fa-circle text-success"></i> Taken
+                                    </span>
+                                    <span class="me-2">
+                                        <i class="fas fa-circle text-danger"></i> Missed
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-circle text-info"></i> Upcoming
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activities and Medications Row -->
+                <div class="row">
+                    <!-- Recent Activities -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">Upcoming Activities</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <div class="list-group-item border-0 d-flex align-items-center px-0 py-3">
+                                        <div class="me-3 bg-primary text-white rounded p-2">
+                                            <i class="fas fa-calendar-check"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">Medication check-in</h6>
+                                            <p class="text-muted mb-0 small">Today at 8:00 PM</p>
+                                        </div>
+                                        <span class="badge bg-warning text-dark">Due Today</span>
+                                    </div>
+                                    
+                                    <div class="list-group-item border-0 d-flex align-items-center px-0 py-3">
+                                        <div class="me-3 bg-primary text-white rounded p-2">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">Doctor appointment</h6>
+                                            <p class="text-muted mb-0 small">April 5, 2024 at 10:30 AM</p>
+                                        </div>
+                                        <span class="badge bg-info">Upcoming</span>
+                                    </div>
+                                    
+                                    <div class="list-group-item border-0 d-flex align-items-center px-0 py-3">
+                                        <div class="me-3 bg-primary text-white rounded p-2">
+                                            <i class="fas fa-notes-medical"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">Health assessment</h6>
+                                            <p class="text-muted mb-0 small">April 10, 2024</p>
+                                        </div>
+                                        <span class="badge bg-info">Upcoming</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-3">
+                                    <a href="#" class="btn btn-outline-primary btn-sm">View All Activities</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Medications -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card shadow-sm">
+                            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                                <h6 class="m-0 font-weight-bold text-primary">Current Medications</h6>
+                                <a href="{{ url_for('medications_page') }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus fa-sm"></i> Add New
+                                </a>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <div class="list-group-item border-0 d-flex align-items-center px-0 py-3">
+                                        <div class="me-3 bg-primary text-white rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-capsules"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">Aspirin</h6>
+                                            <p class="text-muted mb-0 small">100mg - Once daily</p>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-success btn-sm me-1">
+                                                <i class="fas fa-check"></i> Take
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="list-group-item border-0 d-flex align-items-center px-0 py-3">
+                                        <div class="me-3 bg-primary text-white rounded-circle p-2" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-pills"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-0">Vitamin D</h6>
+                                            <p class="text-muted mb-0 small">1000 IU - Once daily</p>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-success btn-sm me-1">
+                                                <i class="fas fa-check"></i> Take
+                                            </button>
+                                            <button class="btn btn-outline-secondary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-grid gap-2 mt-3">
+                                    <a href="{{ url_for('medications_page') }}" class="btn btn-outline-primary btn-sm">Manage Medications</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -167,222 +294,128 @@
         </div>
     </div>
     
-    <!-- BMI Calculation Modal -->
-    <div class="modal fade" id="bmiModal" tabindex="-1" aria-labelledby="bmiModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bmiModalLabel">Calculate BMI</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="bmiForm">
-                        <div class="mb-3">
-                            <label for="height" class="form-label">Height (cm)</label>
-                            <input type="number" class="form-control" id="height" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="weight" class="form-label">Weight (kg)</label>
-                            <input type="number" class="form-control" id="weight" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="calculate-bmi">Calculate</button>
-                </div>
-            </div>
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 Medical AI Assistant. All rights reserved.</span>
         </div>
-    </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
     
-    <!-- Blood Pressure Modal -->
-    <div class="modal fade" id="bpModal" tabindex="-1" aria-labelledby="bpModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="bpModalLabel">Record Blood Pressure</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="bpForm">
-                        <div class="mb-3">
-                            <label for="systolic" class="form-label">Systolic (mmHg)</label>
-                            <input type="number" class="form-control" id="systolic" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="diastolic" class="form-label">Diastolic (mmHg)</label>
-                            <input type="number" class="form-control" id="diastolic" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="record-bp">Record</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
+        // Chart.js initialization
         document.addEventListener('DOMContentLoaded', function() {
-            // BMI Calculation
-            document.getElementById('calculate-bmi').addEventListener('click', function() {
-                const height = parseFloat(document.getElementById('height').value);
-                const weight = parseFloat(document.getElementById('weight').value);
-                
-                if (height && weight) {
-                    const heightInMeters = height / 100;
-                    const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
-                    
-                    document.getElementById('bmi-value').textContent = bmi;
-                    
-                    let status = '';
-                    if (bmi < 18.5) {
-                        status = 'Underweight';
-                    } else if (bmi < 25) {
-                        status = 'Normal weight';
-                    } else if (bmi < 30) {
-                        status = 'Overweight';
-                    } else {
-                        status = 'Obese';
+            // Blood Pressure Chart
+            var bpCtx = document.getElementById('bloodPressureChart');
+            var bloodPressureChart = new Chart(bpCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Systolic',
+                        data: [120, 122, 119, 118, 121, 117],
+                        backgroundColor: 'rgba(78, 115, 223, 0.05)',
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(78, 115, 223, 1)',
+                        pointHoverBorderColor: 'rgba(78, 115, 223, 1)',
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Diastolic',
+                        data: [80, 82, 78, 79, 81, 77],
+                        backgroundColor: 'rgba(28, 200, 138, 0.05)',
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        pointRadius: 3,
+                        pointBackgroundColor: 'rgba(28, 200, 138, 1)',
+                        pointBorderColor: 'rgba(28, 200, 138, 1)',
+                        pointHoverRadius: 5,
+                        pointHoverBackgroundColor: 'rgba(28, 200, 138, 1)',
+                        pointHoverBorderColor: 'rgba(28, 200, 138, 1)',
+                        pointHitRadius: 10,
+                        pointBorderWidth: 2,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            left: 10,
+                            right: 25,
+                            top: 25,
+                            bottom: 0
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                maxTicksLimit: 5,
+                                padding: 10
+                            },
+                            grid: {
+                                color: "rgb(234, 236, 244)",
+                                drawBorder: false,
+                                borderDash: [2],
+                                zeroLineBorderDash: [2]
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                maxTicksLimit: 7
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
                     }
-                    
-                    document.getElementById('bmi-status').textContent = status;
-                    
-                    // Save BMI data (simplified for demo)
-                    saveHealthMetric('bmi', bmi, status);
-                    
-                    // Close the modal
-                    bootstrap.Modal.getInstance(document.getElementById('bmiModal')).hide();
                 }
             });
             
-            // Blood Pressure Recording
-            document.getElementById('record-bp').addEventListener('click', function() {
-                const systolic = parseInt(document.getElementById('systolic').value);
-                const diastolic = parseInt(document.getElementById('diastolic').value);
-                
-                if (systolic && diastolic) {
-                    const bpValue = `${systolic}/${diastolic}`;
-                    document.getElementById('bp-value').textContent = bpValue;
-                    
-                    let status = '';
-                    if (systolic < 120 && diastolic < 80) {
-                        status = 'Normal';
-                    } else if ((systolic >= 120 && systolic <= 129) && diastolic < 80) {
-                        status = 'Elevated';
-                    } else if ((systolic >= 130 && systolic <= 139) || (diastolic >= 80 && diastolic <= 89)) {
-                        status = 'Stage 1 Hypertension';
-                    } else if (systolic >= 140 || diastolic >= 90) {
-                        status = 'Stage 2 Hypertension';
+            // Medication Adherence Chart
+            var medCtx = document.getElementById('medicationChart');
+            var medicationChart = new Chart(medCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Taken', 'Missed', 'Upcoming'],
+                    datasets: [{
+                        data: [85, 15, 30],
+                        backgroundColor: ['#1cc88a', '#e74a3b', '#36b9cc'],
+                        hoverBackgroundColor: ['#17a673', '#c93b2e', '#2c9faf'],
+                        hoverBorderColor: 'rgba(234, 236, 244, 1)',
+                    }],
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: "rgb(255,255,255)",
+                            bodyColor: "#858796",
+                            borderColor: '#dddfeb',
+                            borderWidth: 1,
+                            displayColors: false,
+                            caretPadding: 10,
+                        }
                     }
-                    
-                    document.getElementById('bp-status').textContent = status;
-                    
-                    // Save BP data (simplified for demo)
-                    saveHealthMetric('bp', bpValue, status);
-                    
-                    // Close the modal
-                    bootstrap.Modal.getInstance(document.getElementById('bpModal')).hide();
                 }
             });
-            
-            // Function to save health metric (simplified)
-            function saveHealthMetric(type, value, status) {
-                console.log(`Saving ${type} metric: ${value} (${status})`);
-                // In a real app, this would make an API call to save the data
-                
-                // Update the health metrics chart
-                updateHealthMetricsChart();
-            }
-            
-            // Initialize health metrics chart
-            function initHealthMetricsChart() {
-                const trace1 = {
-                    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-                    y: [null, null, null, null, null, null, null, null, null],
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'BMI',
-                    line: {color: 'rgb(49, 130, 189)'}
-                };
-                
-                const trace2 = {
-                    x: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-                    y: [null, null, null, null, null, null, null, null, null],
-                    type: 'scatter',
-                    mode: 'lines+markers',
-                    name: 'Blood Pressure (Systolic)',
-                    line: {color: 'rgb(204, 0, 0)'}
-                };
-                
-                const data = [trace1, trace2];
-                
-                const layout = {
-                    title: 'Health Metrics Over Time',
-                    xaxis: {
-                        title: 'Month'
-                    },
-                    yaxis: {
-                        title: 'Value'
-                    },
-                    height: 350,
-                    margin: {
-                        l: 50,
-                        r: 50,
-                        b: 50,
-                        t: 50,
-                        pad: 4
-                    }
-                };
-                
-                Plotly.newPlot('health-metrics-chart', data, layout);
-            }
-            
-            // Initialize health insights chart
-            function initHealthInsightsChart() {
-                const data = [{
-                    values: [20, 25, 15, 40],
-                    labels: ['Diet', 'Exercise', 'Sleep', 'Mindfulness'],
-                    type: 'pie',
-                    marker: {
-                        colors: ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 206, 86)', 'rgb(75, 192, 192)']
-                    }
-                }];
-                
-                const layout = {
-                    title: 'Health Focus Areas',
-                    height: 300,
-                    margin: {
-                        l: 20,
-                        r: 20,
-                        b: 20,
-                        t: 50,
-                        pad: 4
-                    }
-                };
-                
-                Plotly.newPlot('health-insights-chart', data, layout);
-            }
-            
-            // Function to update health metrics chart (simplified)
-            function updateHealthMetricsChart() {
-                // In a real app, this would fetch updated data from the server
-                const updatedBMI = [21.5, 22.1, 22.8, 23.2, 23.0, 22.7, 22.5, 21.9, 21.7];
-                const updatedBP = [120, 118, 122, 125, 119, 121, 118, 120, 117];
-                
-                Plotly.update('health-metrics-chart', {
-                    'y': [updatedBMI, updatedBP]
-                }, {}, [0, 1]);
-            }
-            
-            // Initialize charts
-            initHealthMetricsChart();
-            initHealthInsightsChart();
         });
     </script>
 </body>

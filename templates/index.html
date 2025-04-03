@@ -18,28 +18,35 @@
                     <p class="lead">An AI agent to help with medical information, diagnosis, and research</p>
                 </div>
                 <div>
-                    {% if current_user.is_authenticated %}
-                    <div class="dropdown">
-                        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="userMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle"></i> 
-                            {{ current_user.get_name() or current_user.get_username() }}
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenuButton">
-                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#profileModal">
-                                <i class="bi bi-person"></i> Profile
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="/logout">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a></li>
-                        </ul>
-                    </div>
-                    {% else %}
-                    <div>
-                        <a href="/login" class="btn btn-outline-primary me-2">Login</a>
-                        <a href="/register" class="btn btn-primary">Register</a>
-                    </div>
-                    {% endif %}
+                    <!-- Remove auth buttons like Login, Signup and update navigation for no auth -->
+                    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                        <div class="container">
+                            <a class="navbar-brand" href="/">
+                                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Medical AI Logo" width="30" height="30" class="d-inline-block align-top me-2">
+                                Medical AI Assistant
+                            </a>
+                            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                <span class="navbar-toggler-icon"></span>
+                            </button>
+                            <div class="collapse navbar-collapse" id="navbarNav">
+                                <ul class="navbar-nav me-auto">
+                                    <li class="nav-item">
+                                        <a class="nav-link active" href="/"><i class="bi bi-house-door"></i> Home</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/chatbot"><i class="bi bi-chat-dots"></i> AI Chat</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="/medications"><i class="bi bi-capsule"></i> Medications</a>
+                                    </li>
+                                </ul>
+                                <!-- Removed login/signup buttons -->
+                            </div>
+                        </div>
+                    </nav>
                 </div>
             </div>
             
@@ -51,7 +58,7 @@
         </header>
         
         <!-- Profile Modal -->
-        {% if current_user.is_authenticated %}
+        {% if true %}
         <div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -63,15 +70,15 @@
                         <form id="profileForm">
                             <div class="mb-3">
                                 <label for="profileName" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="profileName" value="{{ current_user.get_name() }}">
+                                <input type="text" class="form-control" id="profileName" value="Demo User">
                             </div>
                             <div class="mb-3">
                                 <label for="profileEmail" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="profileEmail" value="{{ current_user.get_email() }}" readonly>
+                                <input type="email" class="form-control" id="profileEmail" value="demo@example.com" readonly>
                             </div>
                             <div class="mb-3">
                                 <label for="profileRole" class="form-label">Role</label>
-                                <input type="text" class="form-control" id="profileRole" value="{{ current_user.get_role() }}" readonly>
+                                <input type="text" class="form-control" id="profileRole" value="User" readonly>
                             </div>
                         </form>
                         

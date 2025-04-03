@@ -1,227 +1,85 @@
-# MedicalAI Assistant
+# Medical AI Assistant
 
-![Project Logo](images/hope.png)
-
-An AI-powered medical assistant web application that helps with diagnosing diseases, recommending treatments, and providing medical research information.
+A personal health management and medical information application that provides AI-powered medical assistance, symptom analysis, treatment recommendations, medication tracking, and health metric visualization.
 
 ## Features
 
-### Core Features
-- **Symptom Analysis**: Analyze symptoms and get possible diagnoses
-- **Treatment Information**: Get information about treatment options for medical conditions
-- **Medical Research**: Access the latest research information about diseases
-- **Document Repository**: Upload and process medical documents to enhance AI knowledge
+- **Dashboard** - Track health metrics, medication adherence, and upcoming medical activities at a glance
+- **Medication Management** - Track, schedule, and manage medications with a comprehensive interface
+- **Symptom Analysis** - Get educated information about possible conditions based on symptoms
+- **Treatment Information** - Learn about treatment options for various medical conditions
+- **Medical Research** - Access the latest research information about diseases
+- **Health Metrics Visualization** - Track and visualize your health data over time
 
-### Advanced Features
-- **Data Visualization**: Generate visual representations of medical data
-- **Multiple AI Providers**: Support for OpenAI, Cohere, Google AI, and BlackboxAI models
-- **User Authentication**: Secure account creation and management
-- **Image Analysis**: AI-assisted analysis of medical images with enhancement options
-- **Voice Interface**: Speak to the AI and listen to responses
-- **Collaborative Consultations**: Real-time messaging between patients and healthcare providers
-- **Chatbot Interface**: Intuitive chat-based interface with the medical assistant
-- **Health Metrics Dashboard**: Track and visualize personal health metrics
-- **Multilingual Support**: Get medical information in 11 different languages
-- **Medication Reminders**: Track medications, set schedules, and monitor adherence with PDF export
-- **Medication Reminder System**: Automated email notifications for medication reminders and adherence reports
-- **PDF Export**: Export medication details and adherence statistics to PDF format
-- **Health Analytics Dashboard**: Interactive charts and visualizations of medication adherence, health metrics, and upcoming activities
+## Demo
 
-## Setup
+![Medical AI Assistant Demo](screenshot.png)
 
-### Requirements
-- Python 3.9 or higher
-- Flask web framework
-- Various AI and language processing libraries
+## Getting Started
+
+### Prerequisites
+
+- Python 3.13 or higher
+- pip (Python package manager)
 
 ### Installation
 
 1. Clone the repository
-2. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
-3. Set up environment variables in a `.env` file:
-   ```
-   FLASK_SECRET_KEY=your_secret_key
-   OPENAI_API_KEY=your_openai_key
-   COHERE_API_KEY=your_cohere_key
-   GOOGLE_API_KEY=your_google_key
-   ```
-4. Run the application:
-   ```
-   python app.py
-   ```
+```
+git clone https://github.com/yourusername/medical-ai-assistant.git
+cd medical-ai-assistant
+```
 
-### BlackboxAI Standalone Server (Optional)
-The application includes a BlackboxAI integration directly in the Python backend. However, if you prefer to run BlackboxAI as a separate service, a Node.js server is provided:
+2. Install the required dependencies
+```
+pip install flask flask-cors
+```
 
-1. Install Node.js dependencies:
-   ```
-   npm install
-   ```
-2. Run the BlackboxAI server:
-   ```
-   node blackbox_server.js
-   ```
-3. The BlackboxAI server will run on port 3000 by default.
+3. Run the application
+```
+python minimal_app.py
+```
+
+4. Open your browser and navigate to `http://127.0.0.1:5000`
 
 ## Usage
 
-### Authentication
-- Register a new account as a patient, doctor, or specialist
-- Log in to access the application features
-- Manage your profile and password from the user menu
+### Dashboard
 
-### AI Assistant
-- Describe symptoms to get possible diagnoses
-- Enter a medical condition to learn about treatment options
-- Research diseases to get the latest information
-- Optionally include visualizations with your requests
-- Choose between different AI providers: OpenAI, Cohere, Google, or BlackboxAI
-
-### Document Repository
-- Upload medical documents (PDF, DOCX, TXT) to enhance the AI's knowledge
-- View all uploaded documents
-
-### Image Analysis
-- Upload medical images for AI-assisted analysis
-- Apply various enhancements to improve image quality
-- Receive AI interpretation of image metrics
-
-### Voice Interface
-- Record voice input to describe symptoms or ask questions
-- Process transcriptions for different types of analysis
-- Listen to AI responses through speech synthesis
-
-### Consultations
-- Create or join consultation sessions
-- Exchange real-time messages with healthcare providers
-- Share images and files during consultations
-- View participant information and session history
-
-### Visualizations
-- Generate visualizations of symptoms, treatments, and disease progression
-- Save visualizations for future reference
-- View gallery of saved visualizations
-
-### Chatbot Interface
-- Interact with the AI using a familiar chat interface
-- See real-time typing indicators as the AI responds
-- Get quick responses to medical questions
-- Use voice commands to speak with the assistant
-- Switch AI providers on-the-fly to compare responses
-- Save and export chat conversations
-
-### Health Dashboard
-- Track key health metrics like BMI, blood pressure, heart rate, and oxygen saturation
-- Visualize health data over time with interactive charts
-- Receive personalized health recommendations based on your data
-- View recent consultations and upcoming appointments
-- Set health goals and track progress
-
-### Multilingual Support
-- Get medical information in 11 different languages
-- Automatic language detection for input text
-- Translate AI responses to your preferred language
-- Preserve medical terminology during translation
-- Special handling for medical terms to ensure accuracy
+The dashboard provides an at-a-glance view of your health metrics, medication adherence, and upcoming activities. View charts displaying your blood pressure history, medication adherence statistics, and more.
 
 ### Medication Management
-- Add and track medications with dosage and schedule information
-- Set up various frequency patterns (daily, weekly, every X hours, etc.)
-- Record medication doses as taken or missed
-- View upcoming medications due in the next 24 hours
-- Monitor medication adherence with visual statistics
-- Get personalized adherence improvement tips
-- View 7-day medication schedule overview
-- Generate comprehensive PDF reports for healthcare providers
 
-### Health Analytics Dashboard
-- **Medication Adherence Tracking**: Visual representation of medication adherence with doughnut charts
-- **Health Metrics Monitoring**: Track and visualize vital signs and health metrics over time with line graphs
-- **Activity Timeline**: View upcoming healthcare activities, appointments, and assessments
-- **Real-time Data Updates**: Analytics automatically refresh when the dashboard is opened
-- **Interactive Visualization**: Charts react to data changes and user interactions
-- **Comprehensive Health Overview**: Consolidated view of medication adherence, health metrics, and scheduled activities
+The medication management page allows you to:
+- View all current medications
+- Add new medications
+- Track adherence history
+- View detailed medication information
+- Mark medications as taken
 
-## Technical Architecture
+### Symptom Analysis
 
-### Backend
-- **Flask**: Web framework
-- **LangChain**: Integration with multiple AI providers
-- **Flask-Login**: User authentication
-- **Pillow/OpenCV**: Image processing
-- **SQLite/JSON**: Data storage
-- **Googletrans**: Language translation
+Enter your symptoms in the AI Assistant tab to get educated information about possible conditions. The AI will analyze your symptoms and provide information about potential causes and recommended next steps.
 
-### Frontend
-- **Bootstrap**: UI framework
-- **JavaScript**: Dynamic interactions
-- **Plotly**: Interactive data visualizations
+### Treatment Information
 
-### AI Providers
-- **OpenAI**: GPT models (requires API key)
-- **Cohere**: Command models (requires API key)
-- **Google**: Gemini models (requires API key)
-- **BlackboxAI**: Various AI models including GPT-4o, Claude, Gemini, and BlackboxAI's own model (no API key required)
+Search for specific medical conditions to learn about various treatment options, including medications, therapies, and lifestyle changes.
 
-### Supported Languages
-- English
-- Spanish
-- French
-- German
-- Chinese (Simplified)
-- Japanese
-- Arabic
-- Russian
-- Portuguese
-- Hindi
-- Swahili
+## Technology Stack
 
-## Medical Disclaimer
+- **Frontend**: HTML, CSS, JavaScript, Bootstrap 5
+- **Backend**: Flask (Python)
+- **Charts**: Chart.js
+- **Data Visualization**: Plotly.js
 
-This application provides information for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical concerns.
+## Security
 
-## Important Disclaimer
+This application is designed for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Please see [SECURITY.md](SECURITY.md) for information about the application's security features and data handling practices.
 
-This application is for **educational purposes only** and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.
+## License
 
-## Author
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-![Creator Image](images/creator.jpg)
+## Disclaimer
 
-**uncoder-cloud**
-
-- Email: webdayskenya@gmail.com
-- WhatsApp: +254791258754
-- Instagram: phantom0x01 
-
-## Testing
-
-The Medical AI Assistant includes a comprehensive testing suite to ensure all features work correctly:
-
-### Running Tests
-
-```bash
-# Run all tests with detailed output
-python run_tests.py
-
-# Or run pytest directly
-pytest -v tests/
-```
-
-### Test Suite Components
-
-The test suite includes test files for core components:
-
-- **Medication Reminder Tests**: Tests for adding, retrieving, and tracking medications
-- **Email Service Tests**: Tests for sending medication reminders and adherence reports
-- **Reminder Scheduler Tests**: Tests for scheduling and sending automated reminders
-
-### Test Coverage
-
-The tests cover:
-- Core functionality validation
-- Edge case handling
-- Integration between components 
+The Medical AI Assistant is for educational purposes only and should not be used as a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition. 

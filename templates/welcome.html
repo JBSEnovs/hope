@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Medical AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-12 text-center mb-5">
+                <h1 class="display-4">Welcome to Medical AI Assistant</h1>
+                <p class="lead">Your personal health management companion</p>
+            </div>
+        </div>
+
+        <div class="row mb-5">
+            <div class="col-lg-6 offset-lg-3">
+                <div class="card shadow-sm">
+                    <div class="card-body p-5 text-center">
+                        <div class="mb-4 mx-auto" style="width: 150px; height: 150px; background-color: #0d6efd; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-heartbeat text-white" style="font-size: 5rem;"></i>
+                        </div>
+                        <h2>Get Started Today</h2>
+                        <p class="lead">Explore the features of your personal health assistant</p>
+                        <div class="d-grid gap-2 col-lg-8 mx-auto">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-chart-line me-2"></i>View Dashboard
+                            </a>
+                            <a href="{{ url_for('chatbot') }}" class="btn btn-outline-primary btn-lg">
+                                <i class="fas fa-robot me-2"></i>Try the AI Chatbot
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white mb-3 rounded-circle mx-auto" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-stethoscope fa-2x"></i>
+                        </div>
+                        <h3 class="card-title">Symptom Analysis</h3>
+                        <p class="card-text">Get educational information about your symptoms and potential health conditions.</p>
+                        <a href="{{ url_for('chatbot') }}" class="btn btn-sm btn-outline-primary">Try It Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white mb-3 rounded-circle mx-auto" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-pills fa-2x"></i>
+                        </div>
+                        <h3 class="card-title">Medication Tracking</h3>
+                        <p class="card-text">Manage your medications, set reminders, and improve your adherence.</p>
+                        <a href="{{ url_for('medications_page') }}" class="btn btn-sm btn-outline-primary">Track Medications</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white mb-3 rounded-circle mx-auto" style="width: 60px; height: 60px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-chart-bar fa-2x"></i>
+                        </div>
+                        <h3 class="card-title">Health Metrics</h3>
+                        <p class="card-text">Track and visualize your health metrics to monitor your progress over time.</p>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-sm btn-outline-primary">View Metrics</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h3 class="border-bottom pb-2 mb-4">Recent Updates</h3>
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-bell fa-lg"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5>New Feature: Multilingual Support</h5>
+                                <p class="text-muted mb-0">Access medical information in multiple languages to break down barriers to healthcare.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex mb-3">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-cog fa-lg"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5>Enhanced Dashboard Visualization</h5>
+                                <p class="text-muted mb-0">We've improved the health metrics dashboard with better charts and visual indicators.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <div class="bg-primary text-white rounded-circle p-2" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-shield-alt fa-lg"></i>
+                                </div>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5>Privacy Improvements</h5>
+                                <p class="text-muted mb-0">All health data is now stored locally on your device, giving you complete control over your information.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-light py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="mb-4">Ready to take control of your health?</h2>
+                    <p class="lead mb-4">Medical AI Assistant provides the tools you need to manage your health effectively.</p>
+                    <a href="{{ url_for('help_page') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-question-circle me-1"></i>Learn More
+                    </a>
+                    <a href="{{ url_for('settings') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-cog me-1"></i>Configure Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 Medical AI Assistant. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/settings.js') }}"></script>
+</body>
+</html> 
