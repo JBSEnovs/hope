@@ -32,6 +32,13 @@ class BlackboxAI:
             "gemini-pro",
             "blackboxai"  # Free model
         ]
+        
+        # Demo responses for when the API is unavailable
+        self.demo_responses = {
+            "symptoms": "Based on the symptoms you've described, this could be consistent with several conditions including:\n\n1. Common Cold\n- Matches your symptoms of sore throat and congestion\n- Other symptoms might include mild fever and cough\n- Usually resolves within 7-10 days with rest and hydration\n\n2. Seasonal Allergies\n- Often presents with congestion and sometimes sore throat\n- May also cause itchy eyes and sneezing\n- Typically worsens during specific seasons\n\n3. Viral Pharyngitis\n- Primarily causes sore throat\n- Often accompanied by mild fever and fatigue\n- Usually improves within a week\n\nIt would be advisable to consult with a primary care physician if symptoms persist beyond a few days or worsen significantly.\n\nNote: This is not a diagnosis, just educational information about what these symptoms might be associated with.",
+            "medication": "Here's some information about this medication:\n\n- Mechanism of Action: This medication works by inhibiting specific enzymes in the body that contribute to inflammation and pain.\n- Common Side Effects: May include mild stomach upset, dizziness, and in some cases, headache. Most side effects are temporary and resolve on their own.\n- Usage Guidelines: Typically taken with food to reduce stomach irritation. It's important to take it at regular intervals as prescribed.\n- Precautions: Should be used with caution in people with kidney disease, heart conditions, or those taking blood thinners.\n\nRemember to follow your doctor's specific instructions for your situation, as they may differ from general guidelines.",
+            "general": "I understand you have a question about this health topic. The Medical AI Assistant can provide educational information about common conditions, medications, and general health topics.\n\nFor personalized medical advice, it's important to consult with a healthcare professional who can consider your specific medical history and situation.\n\nIf you'd like to learn more about general health information on this topic, please provide more details about what specific aspects you're interested in."
+        }
     
     def chat(self, content, conversation_id=None):
         """
@@ -49,9 +56,31 @@ class BlackboxAI:
             if result.get('success'):
                 return result.get('response', '')
             else:
-                return f"Error: {result.get('error', 'Unknown error')}"
+                error_msg = result.get('error', 'Unknown error')
+                # If service unavailable, provide a demo response
+                if "503" in error_msg:
+                    return self.get_demo_response(content) + "\n\n[Note: This is a demo response because the AI service is currently unavailable]"
+                return f"Error: {error_msg}"
         except Exception as e:
             return f"Error communicating with BlackboxAI: {str(e)}"
+    
+    def get_demo_response(self, query):
+        """
+        Get a demo response based on the query content
+        
+        Args:
+            query (str): User query
+            
+        Returns:
+            str: Demo response text
+        """
+        query = query.lower()
+        if any(word in query for word in ["symptom", "pain", "feel", "hurt", "ache"]):
+            return self.demo_responses["symptoms"]
+        elif any(word in query for word in ["medication", "drug", "pill", "medicine", "prescription"]):
+            return self.demo_responses["medication"]
+        else:
+            return self.demo_responses["general"]
     
     def send_message(self, content, conversation_id=None):
         """

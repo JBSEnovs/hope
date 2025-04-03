@@ -1,57 +1,10 @@
 Flask==2.3.3
-openai==0.28.1
 python-dotenv==1.0.0
-# Removing cohere and Google AI which rely on httpx
-# cohere==4.32
-# google-generativeai==0.3.1
-pypdf==3.17.1
-docx2txt==0.8
-matplotlib==3.10.1
-plotly==6.0.1
-pandas==2.2.3
-flask-socketio==5.3.6
-pillow==11.1.0
-opencv-python==4.8.1.78
-# Removing tensorflow as it's not compatible with Python 3.13
-# tensorflow==2.15.0
-scikit-image==0.21.0
-SpeechRecognition==3.10.0
-pyttsx3==2.90
-redis==5.2.1
-sse-starlette==1.6.5
-boto3==1.34.33
-flask-bcrypt==1.0.1
-flask-login==0.6.3
-# For BlackboxAI integration
 requests==2.31.0
-# HTTP and API dependencies
-httpx==0.23.0
-httpcore==0.15.0
-anyio==3.7.1
-h11==0.12.0
-rfc3986==1.5.0
-idna==2.10
-python-multipart==0.0.6
-# For CORS support
 flask-cors==4.0.0
-# PDF Generation
-reportlab==4.0.0
-fpdf2==2.8.2
-# Email notifications
-flask-mail==0.9.1
-# Task scheduling
-apscheduler==3.10.1
-# Testing
-pytest==7.4.0
-pytest-flask==1.2.0
-# Data visualization dependencies
-numpy>=1.22.0
-kiwisolver>=1.3.1
-fonttools>=4.22.0
-pyparsing>=2.3.1
-defusedxml>=0.7.1
-chardet>=3.0.4
-# Additional user interface packages
+matplotlib==3.10.1
+pandas==2.2.3
+pillow==11.1.0
 bootstrap-flask==2.3.0
 wtforms==3.0.1
 flask-wtf==1.2.1 

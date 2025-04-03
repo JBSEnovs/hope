@@ -8,6 +8,10 @@ from werkzeug.utils import secure_filename
 import json
 from datetime import datetime, timedelta
 import uuid
+import time
+
+# Import the MedicalAgent class
+from agents.medical_agent import MedicalAgent
 
 # Configure logging
 if not os.path.exists('logs'):
@@ -39,6 +43,14 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload
 
 # Create required directories
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+# Create directories
+os.makedirs('logs', exist_ok=True)
+os.makedirs('data', exist_ok=True)
+os.makedirs('data/medications', exist_ok=True)
+
+# Initialize the medical agent
+medical_agent = MedicalAgent()
 
 # Default user function to replace authentication
 def get_default_user():
@@ -609,6 +621,70 @@ def research():
         'success': True,
         'research': research_info
     })
+
+@app.route('/api/providers', methods=['GET'])
+def providers():
+    """Returns available providers and their default models"""
+    app.logger.info('Providers API accessed')
+    try:
+        blackbox_models = medical_agent.get_blackbox_models() or ["blackboxai"]
+    except Exception as e:
+        app.logger.error(f"Error getting blackbox models: {e}")
+        blackbox_models = ["blackboxai"]
+        
+    providers = {
+        "blackbox": {
+            "default_model": "blackboxai",
+            "available_models": blackbox_models
+        }
+    }
+    
+    return jsonify(providers)
+
+@app.route('/api/documents', methods=['GET'])
+def get_documents():
+    """Get list of available documents"""
+    app.logger.info('Documents API accessed')
+    try:
+        documents = medical_agent.get_uploaded_documents()
+        return jsonify({"documents": documents})
+    except Exception as e:
+        app.logger.error(f"Error getting documents: {str(e)}")
+        return jsonify({"documents": []})
+
+@app.route('/api/blackbox/query', methods=['POST'])
+def blackbox_query():
+    """Handle direct queries to the BlackboxAI"""
+    app.logger.info('BlackboxAI query API accessed')
+    try:
+        data = request.json
+        query = data.get('query', '')
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
+            
+        result = medical_agent.blackbox_ai.chat(query)
+        return jsonify({"response": result})
+    except Exception as e:
+        app.logger.error(f"Error in blackbox query: {str(e)}")
+        return jsonify({"error": f"Error processing query: {str(e)}"}), 500
+
+@app.route('/api/languages', methods=['GET'])
+def get_languages():
+    """Get available languages"""
+    app.logger.info('Languages API accessed')
+    languages = [
+        {"code": "en", "name": "English", "native_name": "English"},
+        {"code": "es", "name": "Spanish", "native_name": "Español"},
+        {"code": "fr", "name": "French", "native_name": "Français"},
+        {"code": "de", "name": "German", "native_name": "Deutsch"},
+        {"code": "zh", "name": "Chinese", "native_name": "中文"},
+        {"code": "ja", "name": "Japanese", "native_name": "日本語"},
+        {"code": "ar", "name": "Arabic", "native_name": "العربية"},
+        {"code": "hi", "name": "Hindi", "native_name": "हिन्दी"},
+        {"code": "pt", "name": "Portuguese", "native_name": "Português"},
+        {"code": "ru", "name": "Russian", "native_name": "Русский"}
+    ]
+    return jsonify({"languages": languages})
 
 # Error handlers
 @app.errorhandler(404)

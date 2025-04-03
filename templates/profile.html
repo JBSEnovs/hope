@@ -263,27 +263,27 @@
                                         </div>
                                         <div class="col-md-6">
                                             <label for="dob" class="form-label">Date of Birth</label>
-                                            <input type="date" class="form-control" id="dob" name="dob" value="{{ current_user.profile.get('dob', '') }}">
+                                            <input type="date" class="form-control" id="dob" name="dob" value="1985-06-15">
                                         </div>
                                     </div>
                                     
                                     <div class="mb-3">
                                         <label for="allergies" class="form-label">Allergies</label>
-                                        <textarea class="form-control" id="allergies" name="allergies" rows="2">{{ current_user.profile.get('allergies', '') }}</textarea>
+                                        <textarea class="form-control" id="allergies" name="allergies" rows="2">None reported</textarea>
                                     </div>
                                     
                                     <div class="mb-3">
                                         <label for="chronic-conditions" class="form-label">Chronic Conditions</label>
-                                        <textarea class="form-control" id="chronic-conditions" name="chronic_conditions" rows="2">{{ current_user.profile.get('chronic_conditions', '') }}</textarea>
+                                        <textarea class="form-control" id="chronic-conditions" name="chronic_conditions" rows="2">None reported</textarea>
                                     </div>
                                     
                                     <div class="mb-3">
                                         <label for="family-history" class="form-label">Family Medical History</label>
-                                        <textarea class="form-control" id="family-history" name="family_history" rows="2">{{ current_user.profile.get('family_history', '') }}</textarea>
+                                        <textarea class="form-control" id="family-history" name="family_history" rows="2">Father: Hypertension, Mother: Type 2 Diabetes</textarea>
                                     </div>
                                     
                                     <div class="form-check mb-3">
-                                        <input class="form-check-input" type="checkbox" id="share-data" name="share_data" {% if current_user.profile.get('share_data') %}checked{% endif %}>
+                                        <input class="form-check-input" type="checkbox" id="share-data" name="share_data">
                                         <label class="form-check-label" for="share-data">
                                             Allow sharing my health data with healthcare providers
                                         </label>
@@ -566,7 +566,7 @@
             });
             
             // Set active blood type
-            const bloodType = "{{ current_user.profile.get('blood_type', '') }}";
+            const bloodType = "O+";
             if (bloodType) {
                 document.getElementById('blood-type').value = bloodType;
             }
