@@ -50,7 +50,7 @@ os.makedirs('data', exist_ok=True)
 os.makedirs('data/medications', exist_ok=True)
 
 # Initialize the medical agent
-medical_agent = MedicalAgent()
+medical_agent = MedicalAgent(model="blackboxai")  # Explicitly use the free BlackboxAI model
 
 # Default user function to replace authentication
 def get_default_user():
@@ -193,32 +193,27 @@ def diagnose():
             'error': 'No symptoms provided'
         }), 400
     
-    # In a real app, this would call a medical model
-    diagnosis = {
-        'possible_conditions': [
-            {
-                'name': 'Common Cold',
-                'probability': 'High',
-                'description': 'A viral infection of the upper respiratory tract.',
-                'symptoms': ['Runny nose', 'Sore throat', 'Cough', 'Congestion', 'Mild fever'],
-                'recommendations': 'Rest, hydration, and over-the-counter cold medications.'
-            },
-            {
-                'name': 'Seasonal Allergies',
-                'probability': 'Medium',
-                'description': 'An immune response to environmental triggers like pollen or dust.',
-                'symptoms': ['Runny nose', 'Sneezing', 'Itchy eyes', 'Congestion'],
-                'recommendations': 'Antihistamines, nasal steroids, or avoiding allergens.'
-            }
-        ],
-        'disclaimer': 'This information is for educational purposes only and should not replace professional medical advice.'
-    }
-    
-    app.logger.info(f'Diagnosis provided for symptoms: {symptoms[:50]}...')
-    return jsonify({
-        'success': True,
-        'diagnosis': diagnosis
-    })
+    try:
+        # Use the medical agent to diagnose symptoms
+        diagnosis_result = medical_agent.diagnose(symptoms)
+        
+        # For the API response, we extract certain parts
+        diagnosis = {
+            'result': diagnosis_result,
+            'disclaimer': medical_agent.disclaimer
+        }
+        
+        app.logger.info(f'Diagnosis provided for symptoms: {symptoms[:50]}...')
+        return jsonify({
+            'success': True,
+            'diagnosis': diagnosis
+        })
+    except Exception as e:
+        app.logger.error(f'Error in diagnosis: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error processing diagnosis: {str(e)}'
+        }), 500
 
 @app.route('/api/treatment', methods=['POST'])
 def treatment():
@@ -234,36 +229,28 @@ def treatment():
             'error': 'No condition provided'
         }), 400
     
-    # Mock treatment info (in a real app, this would come from a medical database)
-    treatment_info = {
-        'condition': condition,
-        'treatments': [
-            {
-                'type': 'Medication',
-                'name': 'Acetaminophen',
-                'description': 'For pain and fever relief.',
-                'usage': 'Take as directed by your healthcare provider.'
-            },
-            {
-                'type': 'Home Care',
-                'name': 'Rest and Hydration',
-                'description': 'Allows your body to recover while staying hydrated.',
-                'usage': 'Rest as much as possible and drink plenty of fluids.'
-            }
-        ],
-        'preventive_measures': [
-            'Wash hands frequently',
-            'Avoid close contact with sick individuals',
-            'Maintain a healthy diet and exercise routine'
-        ],
-        'disclaimer': 'This information is for educational purposes only and should not replace professional medical advice.'
-    }
-    
-    app.logger.info(f'Treatment information provided for condition: {condition}')
-    return jsonify({
-        'success': True,
-        'treatment': treatment_info
-    })
+    try:
+        # Use the medical agent to get treatment recommendations
+        treatment_result = medical_agent.recommend_treatment(condition)
+        
+        # For the API response
+        treatment_info = {
+            'result': treatment_result,
+            'disclaimer': medical_agent.disclaimer,
+            'condition': condition
+        }
+        
+        app.logger.info(f'Treatment information provided for condition: {condition}')
+        return jsonify({
+            'success': True,
+            'treatment': treatment_info
+        })
+    except Exception as e:
+        app.logger.error(f'Error in treatment recommendation: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error processing treatment recommendation: {str(e)}'
+        }), 500
 
 @app.route('/api/medications', methods=['GET'])
 def get_medications():
@@ -588,39 +575,28 @@ def research():
             'error': 'No disease provided'
         }), 400
     
-    # Mock research info (in a real app, this would come from a medical database or AI)
-    research_info = {
-        'disease': disease,
-        'summary': f'Recent research on {disease} has shown promising developments in treatment approaches and understanding of disease mechanisms.',
-        'key_findings': [
-            'New genetic factors identified that contribute to susceptibility',
-            'Improved diagnostic techniques using biomarkers',
-            'Novel therapeutic approaches showing efficacy in clinical trials'
-        ],
-        'recent_papers': [
-            {
-                'title': f'Advances in {disease} Treatment: A Comprehensive Review',
-                'authors': 'Smith et al.',
-                'journal': 'Journal of Medical Research',
-                'year': 2024,
-                'url': '#'
-            },
-            {
-                'title': f'Pathophysiology of {disease}: New Insights',
-                'authors': 'Johnson et al.',
-                'journal': 'Clinical Medicine Today',
-                'year': 2023,
-                'url': '#'
-            }
-        ],
-        'disclaimer': 'This information is for educational purposes only and should not replace professional medical advice.'
-    }
-    
-    app.logger.info(f'Research information provided for disease: {disease}')
-    return jsonify({
-        'success': True,
-        'research': research_info
-    })
+    try:
+        # Use the medical agent to research the disease
+        research_result = medical_agent.research_disease(disease)
+        
+        # For the API response
+        research_info = {
+            'result': research_result,
+            'disclaimer': medical_agent.disclaimer,
+            'disease': disease
+        }
+        
+        app.logger.info(f'Research information provided for disease: {disease}')
+        return jsonify({
+            'success': True,
+            'research': research_info
+        })
+    except Exception as e:
+        app.logger.error(f'Error in disease research: {str(e)}')
+        return jsonify({
+            'success': False,
+            'error': f'Error processing research request: {str(e)}'
+        }), 500
 
 @app.route('/api/providers', methods=['GET'])
 def providers():
@@ -652,6 +628,42 @@ def get_documents():
         app.logger.error(f"Error getting documents: {str(e)}")
         return jsonify({"documents": []})
 
+@app.route('/api/documents/upload', methods=['POST'])
+def upload_document():
+    """Process document upload"""
+    app.logger.info('Document upload API accessed')
+    try:
+        if 'file' not in request.files:
+            app.logger.warning('No file part in the request')
+            return jsonify({"error": "No file part"}), 400
+            
+        file = request.files['file']
+        
+        if file.filename == '':
+            app.logger.warning('No selected file')
+            return jsonify({"error": "No selected file"}), 400
+            
+        if file:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            
+            # Read file content and send to medical agent
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+            
+            result = medical_agent.upload_document(file_content, filename)
+            
+            # Clean up the temp file
+            os.remove(file_path)
+            
+            app.logger.info(f'Document uploaded: {filename}')
+            return jsonify(result)
+            
+    except Exception as e:
+        app.logger.error(f"Error uploading document: {str(e)}")
+        return jsonify({"error": f"Error uploading document: {str(e)}"}), 500
+
 @app.route('/api/blackbox/query', methods=['POST'])
 def blackbox_query():
     """Handle direct queries to the BlackboxAI"""
@@ -659,11 +671,34 @@ def blackbox_query():
     try:
         data = request.json
         query = data.get('query', '')
+        conversation_id = data.get('conversation_id')
+        
         if not query:
+            app.logger.warning('BlackboxAI query with no query text')
             return jsonify({"error": "No query provided"}), 400
+        
+        # Handle model selection if provided
+        model = data.get('model')
+        if model and model in medical_agent.get_blackbox_models():
+            app.logger.info(f'Changing model to {model}')
+            medical_agent.blackbox_ai.change_model(model)
             
-        result = medical_agent.blackbox_ai.chat(query)
-        return jsonify({"response": result})
+        if conversation_id:
+            # Continue existing conversation
+            app.logger.info(f'Continuing conversation {conversation_id[:8]}...')
+            result = medical_agent.blackbox_ai.continue_conversation(conversation_id, query).get('response', '')
+        else:
+            # Start new conversation
+            app.logger.info('Starting new conversation')
+            result = medical_agent.blackbox_ai.chat(query)
+            
+            # Extract conversation ID from result if available
+            conversation_id = medical_agent.blackbox_ai.conversations.keys()[-1] if medical_agent.blackbox_ai.conversations else None
+            
+        return jsonify({
+            "response": result, 
+            "conversation_id": conversation_id
+        })
     except Exception as e:
         app.logger.error(f"Error in blackbox query: {str(e)}")
         return jsonify({"error": f"Error processing query: {str(e)}"}), 500

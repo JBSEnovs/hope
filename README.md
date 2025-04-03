@@ -1,129 +1,83 @@
 # Medical AI Assistant
 
-An advanced healthcare management application that provides personalized medical information, medication tracking, and health metrics visualization.
-
-![Medical AI Assistant](screenshot.png)
+A comprehensive medical information assistant powered by BlackboxAI, designed to provide educational health information, medication management, and visualized health data.
 
 ## Features
 
-- 🤖 **AI-Powered Medical Chatbot**: Get answers to medical questions in natural language
-- 💊 **Medication Management**: Track medications, set reminders, and monitor adherence
-- 📊 **Health Dashboard**: Visualize health metrics and trends
-- 📱 **Responsive Design**: Works on desktop, tablet, and mobile
-- 🌐 **Multilingual Support**: Access information in your preferred language
-- 🔒 **Privacy-Focused**: Your health data stays on your device
+- **AI-Powered Medical Information**: Leverages BlackboxAI's API to provide educational information about medical conditions, treatments, and medications
+- **Multiple AI Models Support**: Access to several AI models through the BlackboxAI API, including:
+  - gpt-4o
+  - claude-sonnet-3.5
+  - gemini-pro
+  - blackboxai (free tier)
+- **Dashboard**: Visualize health metrics, track medication adherence, and view upcoming health activities
+- **Medication Management**: Track medications, dosages, schedules, and adherence history
+- **Responsive Design**: Modern, mobile-friendly interface
 
-## Setup and Installation
+## Screenshots
 
-### Prerequisites
+![Screenshot](screenshot.png)
 
-- Python 3.10+ (tested up to Python 3.13)
-- Flask
-- Modern web browser
-- Internet connection for AI features
-
-### Installation
+## Installation
 
 1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/medical-ai-assistant.git
-   cd medical-ai-assistant
-   ```
+```
+git clone https://github.com/your-username/medical-ai-assistant.git
+cd medical-ai-assistant
+```
 
-2. Create a virtual environment (optional but recommended):
-   ```
-   python -m venv venv
-   # Windows
-   venv\Scripts\activate
-   # Mac/Linux
-   source venv/bin/activate
-   ```
+2. Create and activate a virtual environment:
+```
+python -m venv env
+# On Windows
+.\env\Scripts\activate
+# On Unix/MacOS
+source env/bin/activate
+```
 
 3. Install dependencies:
-   ```
-   pip install -r requirements.txt
-   ```
+```
+pip install -r requirements.txt
+```
 
-4. Set up environment variables (optional, for advanced features):
-   Create a `.env` file with the following variables:
-   ```
-   FLASK_SECRET_KEY=your_secret_key_here
-   OPENAI_API_KEY=your_openai_api_key_here  # Optional, for enhanced AI capabilities
-   ```
-
-## Running the Application
-
-### Basic Usage (Minimal App)
-
-For a lightweight version with no external AI dependencies:
-
+4. Run the application:
 ```
 python minimal_app.py
 ```
 
-Then visit http://127.0.0.1:5000 in your browser.
+5. Open your browser and navigate to `http://127.0.0.1:5000`
 
-### Full Version
+## BlackboxAI Integration
 
-To run the complete application with all features:
+This application integrates with the [BlackboxAI API](https://github.com/notsopreety/blackbox-api) to provide AI-powered medical information. The integration:
 
-```
-python app.py
-```
+- Supports multiple AI models including GPT-4o, Claude, and Gemini Pro
+- Maintains conversation context for natural interactions
+- Provides fallback responses when the API is unavailable
+- Formats medical information with appropriate medical disclaimers
 
-Then visit http://127.0.0.1:5000 in your browser.
+### API Usage
 
-## Usage Guide
+The application uses BlackboxAI's API for:
+- Symptom analysis and potential condition identification
+- Treatment options and recommendations
+- Medical research and disease information
+- Answering general health questions
 
-### Chatbot
+### Offline Capability
 
-1. Navigate to the Chatbot page
-2. Type your medical question and press Enter or click Send
-3. View the AI response and any relevant visualizations
-4. You can select different AI providers from the dropdown menu
+When BlackboxAI's API is unavailable, the application provides pre-defined responses for common medical queries to ensure continuous functionality.
 
-### Medication Management
+## Project Structure
 
-1. Go to the Medications page
-2. View your current medications and adherence stats
-3. Click "Add Medication" to add a new medication
-4. Mark medications as taken with the checkbox
-5. View medication details for more information
+- `minimal_app.py`: Main Flask application
+- `agents/`: AI and functionality modules
+  - `blackbox_ai.py`: BlackboxAI API integration
+  - `medical_agent.py`: Medical functionality and prompts
+- `static/`: CSS, JavaScript, and images
+- `templates/`: HTML templates for the web interface
+- `logs/`: Application logs
 
-### Dashboard
+## Security Notice
 
-The dashboard provides a comprehensive overview of your health metrics, including:
-- Medication adherence
-- Blood pressure trends
-- Activity tracking
-- Upcoming appointments
-
-## Customization
-
-### Theme
-
-You can change the application theme in Settings > Appearance.
-
-### Language
-
-Change the interface language in Settings > Language.
-
-## Security and Privacy
-
-- All data is stored locally on your device
-- No data is sent to external servers without explicit permission
-- Medical information is provided for educational purposes only
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Bootstrap for the responsive UI framework
-- Font Awesome for icons
-- Chart.js for health data visualization
-
-## Disclaimer
-
-This application provides information for educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a qualified healthcare provider for medical concerns. 
+This application is for educational purposes only. It does not provide medical diagnosis, and the information should not replace professional medical advice. Always consult a qualified healthcare provider for medical concerns. 

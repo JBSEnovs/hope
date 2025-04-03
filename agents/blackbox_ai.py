@@ -17,6 +17,7 @@ class BlackboxAI:
         Args:
             model (str): Model to use (defaults to "blackboxai")
         """
+        # Use direct BlackboxAI API instead of a local API service
         self.api_url = "https://api.blackbox.ai/api/chat"
         self.headers = {
             "Content-Type": "application/json"
@@ -58,11 +59,11 @@ class BlackboxAI:
             else:
                 error_msg = result.get('error', 'Unknown error')
                 # If service unavailable, provide a demo response
-                if "503" in error_msg:
+                if "503" in error_msg or "timeout" in error_msg.lower():
                     return self.get_demo_response(content) + "\n\n[Note: This is a demo response because the AI service is currently unavailable]"
                 return f"Error: {error_msg}"
         except Exception as e:
-            return f"Error communicating with BlackboxAI: {str(e)}"
+            return f"Error communicating with BlackboxAI: {str(e)}\n\nHere's a fallback response:\n\n{self.get_demo_response(content)}"
     
     def get_demo_response(self, query):
         """
@@ -109,7 +110,7 @@ class BlackboxAI:
         }
         self.conversations[conversation_id].append(user_message)
         
-        # Prepare the payload
+        # Prepare the payload based on the BlackboxAI API
         payload = {
             "messages": self.conversations[conversation_id],
             "id": conversation_id,
