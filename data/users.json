@@ -1,0 +1,24 @@
+{
+  "28d1f740-d0d1-4019-9791-6a9294aad2c7": {
+    "id": "28d1f740-d0d1-4019-9791-6a9294aad2c7",
+    "username": "phantom0x01",
+    "email": "codespacebydennis@gmail.com",
+    "role": "patient",
+    "name": "code dennis",
+    "profile": {},
+    "created_at": "2025-04-02T19:33:56.800242",
+    "last_login": "2025-04-02T19:40:50.802607"
+  },
+  "740cf176-f0b7-4cf3-b6ad-86aa1e971679": {
+    "id": "740cf176-f0b7-4cf3-b6ad-86aa1e971679",
+    "username": "codespacebydennis@gmail.com",
+    "email": "webdaykenya@gmail.com",
+    "role": "patient",
+    "name": "code dennis",
+    "profile": {
+      "password_hash": "$2b$12$Y2W.kTI3x9Picea2bRl.vOwhdglqzw5rzMV5LzyWullLSfUoYLwdS"
+    },
+    "created_at": "2025-04-02T19:41:44.340515",
+    "last_login": null
+  }
+}

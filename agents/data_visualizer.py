@@ -8,6 +8,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.utils import PlotlyJSONEncoder
+from datetime import datetime
 
 class DataVisualizer:
     """Class for generating visualizations of medical data"""
@@ -17,17 +18,51 @@ class DataVisualizer:
         # Set default style for matplotlib
         plt.style.use('seaborn-v0_8-whitegrid')
         self.colors = px.colors.qualitative.Plotly
+        
+        # Create output directory
+        self.output_dir = os.path.join(os.getcwd(), "data", "visualizations")
+        os.makedirs(self.output_dir, exist_ok=True)
     
-    def create_bar_chart(self, data, title="", x_label="", y_label=""):
-        """Create a bar chart using matplotlib"""
+    def create_bar_chart(self, data, title="", x_label="", y_label="", description=""):
+        """
+        Create a bar chart for data visualization
+        
+        Args:
+            data (dict): Dictionary with keys for data points
+            title (str): Chart title
+            x_label (str): X-axis label
+            y_label (str): Y-axis label
+            description (str): Chart description
+            
+        Returns:
+            str: Path to the saved image
+        """
         plt.figure(figsize=(10, 6))
         
-        # Create the bar chart
-        bars = plt.bar(
-            data['labels'], 
-            data['values'], 
-            color=self.colors[:len(data['labels'])]
-        )
+        # Handle different data formats
+        if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            # List of dictionaries format
+            df = pd.DataFrame(data)
+            x_key = list(df.columns)[0]  # First column as x-axis
+            y_key = list(df.columns)[1]  # Second column as y-axis
+            
+            # Create the bar chart
+            bars = plt.bar(
+                df[x_key],
+                df[y_key],
+                color=self.colors[:len(df)]
+            )
+        else:
+            # Direct key-value format
+            keys = list(data.keys())
+            values = list(data.values())
+            
+            # Create the bar chart
+            bars = plt.bar(
+                keys,
+                values,
+                color=self.colors[:len(keys)]
+            )
         
         # Add title and labels
         plt.title(title, fontsize=16)
@@ -47,65 +82,185 @@ class DataVisualizer:
         
         plt.tight_layout()
         
-        # Convert the plot to a base64 encoded string
-        buffer = io.BytesIO()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        image_png = buffer.getvalue()
-        buffer.close()
+        # Save the plot to a file
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"bar_chart_{timestamp}.png"
+        filepath = os.path.join(self.output_dir, filename)
+        plt.savefig(filepath, format='png', dpi=300)
         plt.close()
         
-        return base64.b64encode(image_png).decode('utf-8')
+        return filepath
     
-    def create_line_chart(self, data, title="", x_label="", y_label=""):
-        """Create a line chart using plotly"""
-        fig = go.Figure()
+    def create_line_chart(self, data, title="", x_label="", y_label="", description=""):
+        """
+        Create a line chart for time series data
         
-        # Add each line
-        for i, series in enumerate(data['series']):
-            fig.add_trace(go.Scatter(
-                x=data['x_values'],
-                y=series['values'],
-                mode='lines+markers',
-                name=series['name'],
-                line=dict(color=self.colors[i % len(self.colors)], width=2),
-                marker=dict(size=8)
-            ))
+        Args:
+            data (dict/list): Data to visualize (dict with x/y values or list of points)
+            title (str): Chart title
+            x_label (str): X-axis label
+            y_label (str): Y-axis label
+            description (str): Chart description
+            
+        Returns:
+            str: Path to the saved image
+        """
+        plt.figure(figsize=(10, 6))
         
-        # Update layout
-        fig.update_layout(
-            title=title,
-            xaxis_title=x_label,
-            yaxis_title=y_label,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            ),
-            template="plotly_white"
+        # Handle different data formats
+        if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            # List of dictionaries format
+            df = pd.DataFrame(data)
+            x_key = list(df.columns)[0]  # First column as x-axis
+            
+            # For each numerical column (except x), plot a line
+            for col in df.columns:
+                if col != x_key and pd.api.types.is_numeric_dtype(df[col]):
+                    plt.plot(df[x_key], df[col], marker='o', linewidth=2, label=col)
+        
+        elif isinstance(data, dict):
+            # Check if it's the old format with 'x_values' and 'series'
+            if 'x_values' in data and 'series' in data:
+                x_values = data['x_values']
+                for series in data['series']:
+                    plt.plot(x_values, series['values'], marker='o', linewidth=2, label=series['name'])
+            else:
+                # Simple x-y dict format
+                keys = sorted(list(data.keys()))
+                values = [data[k] for k in keys]
+                plt.plot(keys, values, marker='o', linewidth=2)
+        
+        # Add title and labels
+        plt.title(title, fontsize=16)
+        plt.xlabel(x_label, fontsize=12)
+        plt.ylabel(y_label, fontsize=12)
+        plt.grid(True, linestyle='--', alpha=0.7)
+        
+        # Add legend if we have multiple lines
+        if 'label' in plt.gca().get_lines()[0].properties():
+            plt.legend()
+        
+        plt.tight_layout()
+        
+        # Save the plot to a file
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"line_chart_{timestamp}.png"
+        filepath = os.path.join(self.output_dir, filename)
+        plt.savefig(filepath, format='png', dpi=300)
+        plt.close()
+        
+        return filepath
+    
+    def create_comparison_chart(self, data, title="", description=""):
+        """
+        Create a visualization for comparing different values
+        
+        Args:
+            data (dict/list): Data to visualize
+            title (str): Chart title
+            description (str): Chart description
+            
+        Returns:
+            str: Path to the saved image
+        """
+        plt.figure(figsize=(10, 6))
+        
+        # Handle different data formats
+        if isinstance(data, list) and all(isinstance(item, dict) for item in data):
+            # List of dictionaries format
+            df = pd.DataFrame(data)
+            labels = df[df.columns[0]]  # First column as labels
+            values = df[df.columns[1]]  # Second column as values
+        elif isinstance(data, dict):
+            # Dictionary format
+            labels = list(data.keys())
+            values = list(data.values())
+        else:
+            # Unsupported format
+            return None
+        
+        # Create the pie chart
+        plt.pie(
+            values, 
+            labels=labels,
+            autopct='%1.1f%%',
+            startangle=90,
+            colors=self.colors[:len(labels)],
+            wedgeprops={'edgecolor': 'w'}
         )
         
-        # Convert to JSON
-        return json.dumps(fig, cls=PlotlyJSONEncoder)
-    
-    def create_pie_chart(self, data, title=""):
-        """Create a pie chart using plotly"""
-        fig = go.Figure(data=[go.Pie(
-            labels=data['labels'],
-            values=data['values'],
-            hole=.3,
-            marker_colors=self.colors[:len(data['labels'])]
-        )])
+        plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle
+        plt.title(title, fontsize=16)
         
-        fig.update_layout(
-            title_text=title,
-            template="plotly_white"
+        # Save the plot to a file
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"comparison_chart_{timestamp}.png"
+        filepath = os.path.join(self.output_dir, filename)
+        plt.savefig(filepath, format='png', dpi=300)
+        plt.close()
+        
+        return filepath
+    
+    def create_schedule_chart(self, data, title="", description=""):
+        """
+        Create a chart showing medication schedule
+        
+        Args:
+            data (list): List of schedule entries with Day, Medication, Scheduled columns
+            title (str): Chart title
+            description (str): Chart description
+            
+        Returns:
+            str: Path to the saved image
+        """
+        # Convert to DataFrame if not already
+        if not isinstance(data, pd.DataFrame):
+            df = pd.DataFrame(data)
+        else:
+            df = data
+            
+        # Group by Day and Medication, with Scheduled as values
+        pivot_df = pd.pivot_table(
+            df, 
+            values='Scheduled', 
+            index='Medication',
+            columns='Day',
+            fill_value=0
         )
         
-        # Convert to JSON
-        return json.dumps(fig, cls=PlotlyJSONEncoder)
+        # Create a heatmap
+        plt.figure(figsize=(max(10, len(pivot_df.columns) * 0.8), max(6, len(pivot_df) * 0.5)))
+        
+        # Create the heatmap
+        plt.pcolormesh(
+            np.arange(len(pivot_df.columns) + 1),
+            np.arange(len(pivot_df) + 1),
+            pivot_df.values,
+            cmap='Greens',
+            alpha=0.8,
+            edgecolors='white',
+            linewidth=1
+        )
+        
+        # Add labels
+        plt.title(title, fontsize=16)
+        plt.yticks(np.arange(len(pivot_df)) + 0.5, pivot_df.index, fontsize=10)
+        plt.xticks(np.arange(len(pivot_df.columns)) + 0.5, pivot_df.columns, fontsize=10, rotation=45, ha='right')
+        
+        # Add colorbar
+        cbar = plt.colorbar(pad=0.01)
+        cbar.set_label('Scheduled')
+        
+        plt.tight_layout()
+        
+        # Save the plot to a file
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"schedule_chart_{timestamp}.png"
+        filepath = os.path.join(self.output_dir, filename)
+        plt.savefig(filepath, format='png', dpi=300)
+        plt.close()
+        
+        return filepath
     
     def parse_symptoms_data(self, text_data):
         """Parse symptom frequency data from text and prepare for visualization"""

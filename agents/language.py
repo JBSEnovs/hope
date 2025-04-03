@@ -1,6 +1,6 @@
 import os
 import json
-from googletrans import Translator
+import requests
 
 class LanguageManager:
     """
@@ -9,7 +9,6 @@ class LanguageManager:
     
     def __init__(self):
         """Initialize the language manager with default settings"""
-        self.translator = Translator()
         self.default_language = 'en'
         self.languages_dir = os.path.join('data', 'languages')
         os.makedirs(self.languages_dir, exist_ok=True)
@@ -61,7 +60,7 @@ class LanguageManager:
     
     def translate_text(self, text, target_language=None):
         """
-        Translate text to the target language
+        Translate text to the target language using a web API
         
         Args:
             text (str): Text to translate
@@ -74,8 +73,28 @@ class LanguageManager:
             return text
         
         try:
-            translated = self.translator.translate(text, dest=target_language)
-            return translated.text
+            # Check if we have a LibreTranslate API key
+            api_key = os.getenv("LIBRETRANSLATE_API_KEY", "")
+            
+            # Try LibreTranslate API if key is available
+            if api_key:
+                endpoint = os.getenv("LIBRETRANSLATE_URL", "https://translate.argosopentech.com/translate")
+                payload = {
+                    "q": text,
+                    "source": "auto",
+                    "target": target_language,
+                    "format": "text",
+                    "api_key": api_key
+                }
+                
+                response = requests.post(endpoint, json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("translatedText", text)
+            
+            # Fallback: Add translation placeholder to indicate need for translation
+            return f"[NEEDS TRANSLATION TO {target_language}]: {text}"
+            
         except Exception as e:
             print(f"Translation error: {e}")
             return text
@@ -160,8 +179,26 @@ class LanguageManager:
             str: Detected language code
         """
         try:
-            detected = self.translator.detect(text)
-            return detected.lang
+            # Check if we have a LibreTranslate API key
+            api_key = os.getenv("LIBRETRANSLATE_API_KEY", "")
+            
+            # Try LibreTranslate language detection API if key is available
+            if api_key:
+                endpoint = os.getenv("LIBRETRANSLATE_URL", "https://translate.argosopentech.com/detect")
+                payload = {
+                    "q": text[:100],  # Just use first 100 chars for detection
+                    "api_key": api_key
+                }
+                
+                response = requests.post(endpoint, json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    if data and isinstance(data, list) and len(data) > 0:
+                        return data[0].get("language", self.default_language)
+            
+            # Fallback: assume English
+            return self.default_language
+            
         except Exception as e:
             print(f"Language detection error: {e}")
             return self.default_language
@@ -200,14 +237,13 @@ class LanguageManager:
                     replacements[placeholder] = actual_term
             
             # Translate the content
-            translated = self.translator.translate(content, dest=target_language)
-            result = translated.text
+            translated = self.translate_text(content, target_language)
             
             # Replace placeholders back with original medical terms
             for placeholder, term in replacements.items():
-                result = result.replace(placeholder, term)
+                translated = translated.replace(placeholder, term)
             
-            return result
+            return translated
         
         except Exception as e:
             print(f"Medical content translation error: {e}")

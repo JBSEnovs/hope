@@ -1,24 +1,16 @@
 import os
-from langchain_openai import ChatOpenAI
-from langchain_cohere import ChatCohere
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import LLMChain
-from langchain.prompts import PromptTemplate
+import openai
+import cohere
+import requests
 
 class ModelProvider:
     """Base class for all model providers"""
     def __init__(self, temperature=0.2):
         self.temperature = temperature
         
-    def get_model(self):
-        """Return the LLM model"""
+    def generate_response(self, prompt):
+        """Generate a response for the given prompt"""
         raise NotImplementedError("Subclasses must implement this method")
-    
-    def create_chain(self, prompt_template):
-        """Create a LangChain with the specified prompt template"""
-        llm = self.get_model()
-        prompt = PromptTemplate.from_template(prompt_template)
-        return LLMChain(llm=llm, prompt=prompt)
 
 class OpenAIProvider(ModelProvider):
     """Provider for OpenAI models"""
@@ -31,12 +23,24 @@ class OpenAIProvider(ModelProvider):
         if not self.api_key:
             raise ValueError("OPENAI_API_KEY environment variable is not set")
         
-    def get_model(self):
-        return ChatOpenAI(
-            model=self.model_name,
-            temperature=self.temperature,
-            api_key=self.api_key
-        )
+        # Set the API key
+        openai.api_key = self.api_key
+        
+    def generate_response(self, prompt):
+        """Generate a response using OpenAI API"""
+        try:
+            response = openai.ChatCompletion.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": "You are a helpful medical assistant."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=self.temperature
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"Error with OpenAI API: {str(e)}")
+            return f"Error generating response: {str(e)}"
 
 class CohereProvider(ModelProvider):
     """Provider for Cohere models"""
@@ -49,12 +53,22 @@ class CohereProvider(ModelProvider):
         if not self.api_key:
             raise ValueError("COHERE_API_KEY environment variable is not set")
         
-    def get_model(self):
-        return ChatCohere(
-            model=self.model_name,
-            temperature=self.temperature,
-            cohere_api_key=self.api_key
-        )
+        # Initialize client
+        self.client = cohere.Client(self.api_key)
+        
+    def generate_response(self, prompt):
+        """Generate a response using Cohere API"""
+        try:
+            response = self.client.generate(
+                model=self.model_name,
+                prompt=prompt,
+                temperature=self.temperature,
+                max_tokens=2000
+            )
+            return response.generations[0].text
+        except Exception as e:
+            print(f"Error with Cohere API: {str(e)}")
+            return f"Error generating response: {str(e)}"
 
 class GoogleProvider(ModelProvider):
     """Provider for Google Gemini models"""
@@ -67,12 +81,24 @@ class GoogleProvider(ModelProvider):
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY environment variable is not set")
         
-    def get_model(self):
-        return ChatGoogleGenerativeAI(
-            model=self.model_name,
-            temperature=self.temperature,
-            google_api_key=self.api_key
-        )
+    def generate_response(self, prompt):
+        """Generate a response using Google Gemini API"""
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:generateContent"
+            headers = {
+                "Content-Type": "application/json",
+                "x-goog-api-key": self.api_key
+            }
+            data = {
+                "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": self.temperature}
+            }
+            response = requests.post(url, headers=headers, json=data)
+            result = response.json()
+            return result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "No response generated")
+        except Exception as e:
+            print(f"Error with Google API: {str(e)}")
+            return f"Error generating response: {str(e)}"
 
 def get_provider(provider_name, model=None):
     """Factory method to get the appropriate provider"""

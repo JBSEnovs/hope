@@ -1,6 +1,5 @@
 import os
 from flask import Flask, render_template, request, jsonify, send_from_directory, redirect, url_for, make_response
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
 from agents.medical_agent import MedicalAgent
 from agents.auth import User, UserManager
@@ -28,18 +27,6 @@ CORS(app, resources={r"/api/*": {"origins": "*"}})
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max upload size
 app.config['UPLOAD_FOLDER'] = os.path.join(os.getcwd(), 'temp_uploads')
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev_secret_key_change_in_production')
-
-# Configure Flask-Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-
-# Custom unauthorized handler for Flask-Login
-@login_manager.unauthorized_handler
-def unauthorized():
-    if request.path.startswith('/api/'):
-        return jsonify({"error": "Authentication required", "code": 401}), 401
-    return redirect(url_for('login'))
 
 # Configure Flask-Mail
 app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp.gmail.com')
@@ -77,83 +64,12 @@ medication_reminder = MedicationReminder()
 email_service = EmailService(app)
 reminder_scheduler = ReminderScheduler(app, user_manager, medication_reminder, email_service)
 
-@login_manager.user_loader
-def load_user(user_id):
-    return user_manager.get_user(user_id)
-
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('welcome.html')
 
-# Authentication routes
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'GET':
-        return render_template('login.html')
-    
-    data = request.get_json() if request.is_json else request.form.to_dict()
-    username = data.get('username')
-    password = data.get('password')
-    
-    result = medical_agent.authenticate_user(username, password)
-    
-    if result.get('success'):
-        user = result.get('user')
-        if user:
-            # Convert to User object if not already
-            if not isinstance(user, User):
-                user = User.from_dict(user)
-            login_user(user)
-            return jsonify({'success': True, 'redirect': '/'})
-    
-    if request.is_json:
-        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
-    else:
-        return render_template('login.html', error='Invalid username or password')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'GET':
-        return render_template('register.html')
-    
-    data = request.get_json() if request.is_json else request.form.to_dict()
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name', '')
-    role = data.get('role', 'patient')
-    
-    result = medical_agent.register_user(username, email, password, role, name)
-    
-    if result.get('success'):
-        if request.is_json:
-            return jsonify({'success': True, 'message': 'Registration successful'})
-        else:
-            return redirect(url_for('login'))
-    
-    if request.is_json:
-        return jsonify({'success': False, 'error': result.get('error', 'Registration failed')}), 400
-    else:
-        return render_template('register.html', error=result.get('error', 'Registration failed'))
-
-@app.route('/logout')
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
-# Custom decorator for API routes that handles unauthorized access
-def api_login_required(func):
-    """Custom decorator for API routes that returns JSON for unauthorized access"""
-    @wraps(func)
-    def decorated_view(*args, **kwargs):
-        if not current_user.is_authenticated:
-            return jsonify({"error": "Authentication required", "code": 401}), 401
-        return func(*args, **kwargs)
-    return decorated_view
-
-# Existing API routes with api_login_required instead of login_required
+# API routes - remove authentication requirement
 @app.route('/api/diagnose', methods=['POST'])
-@api_login_required
 def diagnose():
     data = request.json
     symptoms = data.get('symptoms', '')
@@ -179,7 +95,6 @@ def diagnose():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/treatment', methods=['POST'])
-@api_login_required
 def treatment():
     data = request.json
     condition = data.get('condition', '')
@@ -205,7 +120,6 @@ def treatment():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/research', methods=['POST'])
-@api_login_required
 def research():
     data = request.json
     disease = data.get('disease', '')
@@ -231,7 +145,6 @@ def research():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/upload_document', methods=['POST'])
-@api_login_required
 def upload_document():
     if 'file' not in request.files:
         return jsonify({"error": "No file part"}), 400
@@ -266,7 +179,6 @@ def upload_document():
             return jsonify({"error": str(e)}), 500
 
 @app.route('/api/documents', methods=['GET'])
-@api_login_required
 def get_documents():
     try:
         documents = medical_agent.get_uploaded_documents()
@@ -275,7 +187,6 @@ def get_documents():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/change_provider', methods=['POST'])
-@login_required
 def change_provider():
     data = request.json
     provider = data.get('provider', '')
@@ -322,7 +233,6 @@ def providers():
 
 # Image Analysis Endpoints
 @app.route('/api/analyze_image', methods=['POST'])
-@login_required
 def analyze_image():
     data = request.json
     image_data = data.get('image_data', '')
@@ -342,7 +252,6 @@ def analyze_image():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/enhance_image', methods=['POST'])
-@login_required
 def enhance_image():
     data = request.json
     image_data = data.get('image_data', '')
@@ -371,7 +280,6 @@ def get_image_enhancements():
 
 # Voice Interface Endpoints
 @app.route('/api/transcribe_audio', methods=['POST'])
-@login_required
 def transcribe_audio():
     data = request.json
     audio_data = data.get('audio_data', '')
@@ -391,7 +299,6 @@ def transcribe_audio():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/synthesize_speech', methods=['POST'])
-@login_required
 def synthesize_speech():
     data = request.json
     text = data.get('text', '')
@@ -416,7 +323,6 @@ def get_supported_languages():
 
 # Collaboration Endpoints
 @app.route('/api/create_consultation', methods=['POST'])
-@login_required
 def create_consultation():
     data = request.json
     session_type = data.get('session_type', 'consultation')
@@ -428,7 +334,6 @@ def create_consultation():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/join_consultation/<session_id>', methods=['POST'])
-@login_required
 def join_consultation(session_id):
     data = request.json
     role = data.get('role', 'doctor' if current_user.get_role() == 'doctor' else 'patient')
@@ -440,7 +345,6 @@ def join_consultation(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/leave_consultation/<session_id>', methods=['POST'])
-@login_required
 def leave_consultation(session_id):
     try:
         result = medical_agent.leave_consultation(session_id, current_user.id)
@@ -449,7 +353,6 @@ def leave_consultation(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/send_message/<session_id>', methods=['POST'])
-@login_required
 def send_consultation_message(session_id):
     data = request.json
     content = data.get('content', '')
@@ -465,7 +368,6 @@ def send_consultation_message(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/get_messages/<session_id>', methods=['GET'])
-@login_required
 def get_consultation_messages(session_id):
     since = request.args.get('since', None)
     if since:
@@ -478,7 +380,6 @@ def get_consultation_messages(session_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/active_consultations', methods=['GET'])
-@login_required
 def get_active_consultations():
     try:
         result = medical_agent.get_active_consultations(current_user.id)
@@ -487,7 +388,6 @@ def get_active_consultations():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/end_consultation/<session_id>', methods=['POST'])
-@login_required
 def end_consultation(session_id):
     try:
         result = medical_agent.end_consultation(session_id)
@@ -497,16 +397,20 @@ def end_consultation(session_id):
 
 # User Profile Endpoints
 @app.route('/api/user_profile', methods=['GET'])
-@login_required
 def get_user_profile():
     try:
-        result = medical_agent.get_user(current_user.id)
-        return jsonify(result)
+        user_data = get_default_user()
+        return jsonify({
+            'success': True,
+            'user': user_data
+        })
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/api/update_profile', methods=['POST'])
-@login_required
 def update_user_profile():
     data = request.json
     if not data:
@@ -519,7 +423,6 @@ def update_user_profile():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/change_password', methods=['POST'])
-@login_required
 def change_password():
     data = request.json
     current_password = data.get('current_password', '')
@@ -536,7 +439,6 @@ def change_password():
 
 # BlackboxAI Endpoints
 @app.route('/api/blackbox/query', methods=['POST'])
-@login_required
 def blackbox_query():
     data = request.json
     query = data.get('query', '')
@@ -607,7 +509,6 @@ def get_languages():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/set_language', methods=['POST'])
-@login_required
 def set_language():
     """Set preferred language for a user"""
     data = request.json
@@ -626,7 +527,6 @@ def set_language():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/translate', methods=['POST'])
-@login_required
 def translate_text():
     """Translate text to selected language"""
     data = request.json
@@ -643,7 +543,6 @@ def translate_text():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/detect_language', methods=['POST'])
-@login_required
 def detect_language():
     """Detect language of text"""
     data = request.json
@@ -660,7 +559,6 @@ def detect_language():
 
 # Add routes for multilingual versions of existing endpoints
 @app.route('/api/diagnose_translated', methods=['POST'])
-@login_required
 def diagnose_translated():
     """Analyze symptoms and return results in user's preferred language"""
     data = request.json
@@ -691,7 +589,6 @@ def diagnose_translated():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/treatment_translated', methods=['POST'])
-@login_required
 def treatment_translated():
     """Get treatment information in user's preferred language"""
     data = request.json
@@ -722,7 +619,6 @@ def treatment_translated():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/research_translated', methods=['POST'])
-@login_required
 def research_translated():
     """Get disease research information in user's preferred language"""
     data = request.json
@@ -754,25 +650,23 @@ def research_translated():
 
 # Language UI routes
 @app.route('/language', methods=['GET'])
-@login_required
 def language_settings():
     """Language settings page"""
     return render_template('language.html')
 
 # New chatbot UI route
 @app.route('/chatbot', methods=['GET'])
-@login_required
 def chatbot():
     """AI chatbot interface"""
     return render_template('chatbot.html')
 
 # User dashboard route
 @app.route('/dashboard', methods=['GET'])
-@login_required
 def dashboard():
     """User health dashboard"""
     # Get user profile information
-    user_result = medical_agent.get_user(current_user.id)
+    user_id = get_default_user()['id']
+    user_result = medical_agent.get_user(user_id)
     
     if user_result.get('success', False):
         user_profile = user_result.get('user', {})
@@ -785,152 +679,127 @@ def dashboard():
         return redirect(url_for('index'))
 
 @app.route('/medications', methods=['GET'])
-@login_required
 def medications_page():
     """Render the medications management page"""
     return render_template('medications.html')
 
 @app.route('/api/medications', methods=['GET'])
-@login_required
 def get_medications():
-    """Get all medications for the logged-in user"""
-    user_id = current_user.get_id()
-    medications = medication_reminder.get_user_medications(user_id)
-    adherence_rate = medication_reminder.get_adherence_rate(user_id)
-    
-    return jsonify({
-        'success': True,
-        'medications': medications,
-        'adherence_rate': adherence_rate
-    })
-
-@app.route('/api/medications', methods=['POST'])
-@login_required
-def add_medication():
-    """Add a new medication reminder"""
-    user_id = current_user.get_id()
-    data = request.json
-    
+    """Get all medications for the default user"""
     try:
-        medication = medication_reminder.add_medication(
-            user_id,
-            data.get('name'),
-            data.get('dosage'),
-            data.get('frequency'),
-            data.get('start_date'),
-            data.get('end_date'),
-            data.get('notes')
-        )
-        
+        user_id = get_default_user()['id']
+        medications = medication_reminder.get_user_medications(user_id)
         return jsonify({
             'success': True,
-            'medication': medication
+            'medications': medications
         })
     except Exception as e:
         return jsonify({
             'success': False,
             'error': str(e)
-        }), 400
+        }), 500
+
+@app.route('/api/medications', methods=['POST'])
+def add_medication():
+    """Add a new medication reminder"""
+    data = request.json
+    
+    name = data.get('name')
+    dosage = data.get('dosage')
+    frequency = data.get('frequency')
+    start_date = data.get('start_date')
+    end_date = data.get('end_date', None)
+    notes = data.get('notes', None)
+    
+    user_id = get_default_user()['id']
+    
+    try:
+        result = medication_reminder.add_medication(
+            user_id, name, dosage, frequency, start_date, end_date, notes
+        )
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/medications/<medication_id>', methods=['GET'])
-@login_required
 def get_medication(medication_id):
     """Get details for a specific medication"""
-    user_id = current_user.get_id()
-    medications = medication_reminder.get_user_medications(user_id)
+    user_id = get_default_user()['id']
     
-    for medication in medications:
-        if medication['id'] == medication_id:
+    try:
+        medication = medication_reminder.get_medication(user_id, medication_id)
+        if medication:
             return jsonify({
                 'success': True,
                 'medication': medication
             })
-    
-    return jsonify({
-        'success': False,
-        'error': 'Medication not found'
-    }), 404
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Medication not found'
+            }), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/medications/<medication_id>', methods=['DELETE'])
-@login_required
 def delete_medication(medication_id):
     """Delete a medication reminder"""
-    user_id = current_user.get_id()
-    success = medication_reminder.delete_medication(user_id, medication_id)
+    user_id = get_default_user()['id']
     
-    if success:
-        return jsonify({
-            'success': True
-        })
-    else:
-        return jsonify({
-            'success': False,
-            'error': 'Medication not found'
-        }), 404
+    try:
+        result = medication_reminder.delete_medication(user_id, medication_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/medications/<medication_id>/<status>', methods=['POST'])
-@login_required
 def record_medication_status(medication_id, status):
     """Record medication as taken or missed"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     
-    if status not in ['taken', 'missed']:
-        return jsonify({
-            'success': False,
-            'error': 'Invalid status. Must be "taken" or "missed".'
-        }), 400
-    
-    if status == 'taken':
-        success = medication_reminder.record_medication_taken(user_id, medication_id)
-    else:
-        success = medication_reminder.record_medication_missed(user_id, medication_id)
-    
-    if success:
-        return jsonify({
-            'success': True
-        })
-    else:
-        return jsonify({
-            'success': False,
-            'error': 'Failed to record medication status'
-        }), 400
+    try:
+        if status == 'taken':
+            result = medication_reminder.record_medication_taken(user_id, medication_id)
+        elif status == 'missed':
+            result = medication_reminder.record_medication_missed(user_id, medication_id)
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid status. Use "taken" or "missed".'
+            }), 400
+            
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/medications/due', methods=['GET'])
-@login_required
 def get_due_medications():
     """Get medications due within the next 24 hours"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     hours = request.args.get('hours', 24, type=int)
     
-    due_medications = medication_reminder.get_due_medications(user_id, hours)
-    
-    return jsonify({
-        'success': True,
-        'medications': due_medications
-    })
-
-@app.route('/api/medications/schedule/visualization', methods=['GET'])
-@login_required
-def get_medication_schedule_visualization():
-    """Get a visualization of the user's medication schedule"""
-    user_id = current_user.get_id()
-    days = request.args.get('days', 7, type=int)
-    
-    visualization = medical_agent.generate_medication_schedule_visualization(user_id, days)
-    
-    if visualization:
+    try:
+        medications = medication_reminder.get_due_medications(user_id, hours)
         return jsonify({
             'success': True,
-            'visualization': visualization
+            'medications': medications
         })
-    else:
-        return jsonify({
-            'success': False,
-            'error': 'No medications found or error generating visualization'
-        }), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/medications/schedule/visualization', methods=['GET'])
+def get_medication_schedule_visualization():
+    """Get a visualization of the user's medication schedule"""
+    user_id = get_default_user()['id']
+    days = request.args.get('days', 7, type=int)
+    
+    try:
+        result = medical_agent.generate_medication_schedule_visualization(user_id, days)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/medications/suggestions', methods=['POST'])
-@login_required
 def get_medication_suggestions():
     """Get medication suggestions for a condition (for educational purposes only)"""
     data = request.json
@@ -948,32 +817,30 @@ def get_medication_suggestions():
     return jsonify(suggestions)
 
 @app.route('/api/medications/report', methods=['GET'])
-@login_required
 def generate_medication_report():
     """Generate a PDF report of the user's medications"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     
-    # Generate the report
-    report_bytes = medication_reminder.generate_medication_report(user_id)
-    
-    if report_bytes:
-        # Create a response with the PDF
-        response = make_response(report_bytes)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename=medication_report.pdf'
-        return response
-    else:
-        return jsonify({
-            'success': False,
-            'error': 'Failed to generate report or no medications found'
-        }), 400
+    try:
+        result = medical_agent.generate_medication_report(user_id)
+        if result.get('success'):
+            report_path = result.get('report_path')
+            return send_from_directory(
+                os.path.dirname(report_path),
+                os.path.basename(report_path),
+                as_attachment=True,
+                download_name="medication_report.pdf"
+            )
+        else:
+            return jsonify(result), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Health Analytics API Endpoints
 @app.route('/api/analytics/adherence', methods=['GET'])
-@login_required
 def get_adherence_analytics():
     """Get adherence analytics data for the current user"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     
     try:
         # Get adherence data from medication reminder
@@ -1013,10 +880,9 @@ def get_adherence_analytics():
         }), 500
 
 @app.route('/api/analytics/health_metrics', methods=['GET'])
-@login_required
 def get_health_metrics():
     """Get health metrics data for the current user"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     
     try:
         # This would normally fetch from a database
@@ -1059,10 +925,9 @@ def get_health_metrics():
         }), 500
 
 @app.route('/api/analytics/health_activities', methods=['GET'])
-@login_required
 def get_health_activities():
     """Get recent and upcoming health activities for the current user"""
-    user_id = current_user.get_id()
+    user_id = get_default_user()['id']
     
     try:
         # Placeholder data - in a real app, this would come from a database
@@ -1120,6 +985,34 @@ def unauthorized_error(error):
     if request.path.startswith('/api/'):
         return jsonify({"error": "Unauthorized", "code": 401}), 401
     return redirect(url_for('login'))
+
+# Add default user function for operations that previously required current_user
+def get_default_user():
+    """Return a default user for operations that previously required authentication"""
+    return {
+        'id': 'default_user',
+        'name': 'Guest User',
+        'username': 'guest',
+        'email': 'guest@example.com',
+        'role': 'patient',
+        'profile': {
+            'phone': '',
+            'bio': 'Default user profile',
+            'height': 170,
+            'weight': 70,
+            'blood_type': 'A+',
+            'dob': '2000-01-01',
+            'allergies': '',
+            'chronic_conditions': '',
+            'family_history': '',
+            'share_data': True
+        }
+    }
+
+@app.route('/settings')
+def settings():
+    """Render the settings page"""
+    return render_template('settings.html')
 
 if __name__ == '__main__':
     app.run(debug=True) 

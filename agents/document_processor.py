@@ -1,113 +1,160 @@
 import os
 import tempfile
+import json
 from typing import List, Dict, Any
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.docstore.document import Document
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
-from langchain.vectorstores.chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
+import re
+import shutil
 
 class DocumentProcessor:
     """Class for processing and ingesting medical documents"""
     
-    def __init__(self, api_key=None):
+    def __init__(self):
         """Initialize the document processor"""
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        self.embeddings = OpenAIEmbeddings(api_key=self.api_key)
-        self.db_directory = os.path.join(os.getcwd(), "chroma_db")
+        self.documents_dir = os.path.join(os.getcwd(), "data", "documents")
         
         # Create the directory if it doesn't exist
-        os.makedirs(self.db_directory, exist_ok=True)
+        os.makedirs(self.documents_dir, exist_ok=True)
         
-        # Initialize or load the vector store
-        self.vector_store = self._initialize_vector_store()
-        
-        # Text splitter for chunking documents
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1500,
-            chunk_overlap=150
-        )
+        # Initialize the document index
+        self.index_file = os.path.join(self.documents_dir, "document_index.json")
+        self._initialize_index()
     
-    def _initialize_vector_store(self) -> Chroma:
-        """Initialize or load the vector store"""
+    def _initialize_index(self):
+        """Initialize or load the document index"""
+        if os.path.exists(self.index_file):
+            try:
+                with open(self.index_file, 'r', encoding='utf-8') as f:
+                    self.document_index = json.load(f)
+            except Exception as e:
+                print(f"Error loading document index: {e}")
+                self.document_index = {"documents": []}
+        else:
+            self.document_index = {"documents": []}
+            self._save_index()
+    
+    def _save_index(self):
+        """Save the document index"""
         try:
-            return Chroma(
-                persist_directory=self.db_directory,
-                embedding_function=self.embeddings
-            )
+            with open(self.index_file, 'w', encoding='utf-8') as f:
+                json.dump(self.document_index, f, indent=2)
         except Exception as e:
-            print(f"Error initializing vector store: {e}")
-            # If loading fails, create a new one
-            return Chroma(
-                embedding_function=self.embeddings,
-                persist_directory=self.db_directory
-            )
+            print(f"Error saving document index: {e}")
     
     def process_file(self, file_content: bytes, file_name: str) -> Dict[str, Any]:
-        """Process a file and add it to the vector store"""
+        """Process a file and save it to the documents directory"""
         try:
-            # Create a temporary file to store the content
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file_name)[1]) as temp_file:
-                temp_file.write(file_content)
-                temp_path = temp_file.name
+            # Generate a unique identifier for the document
+            doc_id = f"{len(self.document_index['documents']) + 1}_{file_name}"
+            safe_filename = re.sub(r'[^\w\-\.]', '_', doc_id)
+            doc_path = os.path.join(self.documents_dir, safe_filename)
             
-            # Load documents based on file type
-            if file_name.lower().endswith('.pdf'):
-                loader = PyPDFLoader(temp_path)
-            elif file_name.lower().endswith('.docx'):
-                loader = Docx2txtLoader(temp_path)
-            elif file_name.lower().endswith('.txt'):
-                loader = TextLoader(temp_path)
-            else:
-                os.unlink(temp_path)
-                return {"success": False, "error": "Unsupported file format"}
+            # Save the file content
+            with open(doc_path, 'wb') as f:
+                f.write(file_content)
             
-            # Load and split the document
-            documents = loader.load()
-            chunks = self.text_splitter.split_documents(documents)
+            # Update the document index
+            document_info = {
+                "id": doc_id,
+                "filename": file_name,
+                "path": doc_path,
+                "added_timestamp": str(os.path.getmtime(doc_path))
+            }
             
-            # Add metadata to track the source
-            for chunk in chunks:
-                if not chunk.metadata:
-                    chunk.metadata = {}
-                chunk.metadata["source"] = file_name
-            
-            # Add to vector store
-            self.vector_store.add_documents(chunks)
-            self.vector_store.persist()
-            
-            # Clean up the temporary file
-            os.unlink(temp_path)
+            self.document_index["documents"].append(document_info)
+            self._save_index()
             
             return {
                 "success": True, 
-                "document_id": file_name,
-                "chunks": len(chunks)
+                "document_id": doc_id,
+                "path": doc_path
             }
             
         except Exception as e:
             return {"success": False, "error": str(e)}
     
-    def search_documents(self, query: str, num_results: int = 5) -> List[Document]:
-        """Search for documents relevant to a query"""
+    def search_documents(self, query: str, num_results: int = 5) -> List[Dict[str, Any]]:
+        """Simple keyword search for documents"""
         try:
-            return self.vector_store.similarity_search(query, k=num_results)
+            results = []
+            query_terms = query.lower().split()
+            
+            for doc in self.document_index["documents"]:
+                # Simple matching based on filename
+                score = sum(1 for term in query_terms if term in doc["filename"].lower())
+                
+                # If filename matches, add to results
+                if score > 0:
+                    results.append({
+                        "document_id": doc["id"],
+                        "filename": doc["filename"],
+                        "score": score,
+                        "content": self._extract_document_preview(doc["path"])
+                    })
+            
+            # Sort by score and limit results
+            results.sort(key=lambda x: x["score"], reverse=True)
+            return results[:num_results]
+        
         except Exception as e:
             print(f"Error searching documents: {e}")
             return []
     
-    def get_document_sources(self) -> List[str]:
-        """Get list of all document sources in the vector store"""
+    def _extract_document_preview(self, doc_path: str, max_chars: int = 500) -> str:
+        """Extract a preview of the document content"""
         try:
-            # This is a simple approach - in a real implementation, you'd want
-            # to query the underlying database more efficiently
-            all_docs = self.vector_store.get()
-            sources = set()
-            if all_docs and 'metadatas' in all_docs:
-                for metadata in all_docs['metadatas']:
-                    if metadata and 'source' in metadata:
-                        sources.add(metadata['source'])
-            return list(sources)
+            # For text files
+            if doc_path.lower().endswith('.txt'):
+                with open(doc_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read(max_chars)
+                    return content + ("..." if len(content) >= max_chars else "")
+            
+            # For other files, just return a placeholder
+            return f"[Document preview not available for {os.path.basename(doc_path)}]"
+            
+        except Exception as e:
+            print(f"Error extracting document preview: {e}")
+            return "[Error extracting document preview]"
+    
+    def get_document_sources(self) -> List[str]:
+        """Get list of all document sources"""
+        try:
+            return [doc["filename"] for doc in self.document_index["documents"]]
         except Exception as e:
             print(f"Error getting document sources: {e}")
-            return [] 
+            return []
+    
+    def get_document_by_id(self, document_id: str) -> Dict[str, Any]:
+        """Retrieve a document by its ID"""
+        try:
+            for doc in self.document_index["documents"]:
+                if doc["id"] == document_id:
+                    return {
+                        "success": True,
+                        "document": doc,
+                        "preview": self._extract_document_preview(doc["path"])
+                    }
+            return {"success": False, "error": "Document not found"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+    
+    def delete_document(self, document_id: str) -> Dict[str, Any]:
+        """Delete a document"""
+        try:
+            for i, doc in enumerate(self.document_index["documents"]):
+                if doc["id"] == document_id:
+                    # Remove file
+                    if os.path.exists(doc["path"]):
+                        os.remove(doc["path"])
+                    
+                    # Remove from index
+                    removed_doc = self.document_index["documents"].pop(i)
+                    self._save_index()
+                    
+                    return {
+                        "success": True,
+                        "document": removed_doc
+                    }
+            
+            return {"success": False, "error": "Document not found"}
+        except Exception as e:
+            return {"success": False, "error": str(e)} 

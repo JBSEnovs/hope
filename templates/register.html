@@ -3,62 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical AI Assistant - Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/styles.css">
+    <title>Medical AI Assistant - Create Account</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 2rem 0;
+        }
+        .logo-section {
+            background-color: #f8f9fa;
+            border-radius: 0.5rem 0 0 0.5rem;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-section {
+            padding: 3rem;
+        }
+        .social-login {
+            border-top: 1px solid #dee2e6;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+        }
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .step-item {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+        .step-item:not(:last-child):after {
+            content: '';
+            position: absolute;
+            top: 1.2rem;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #dee2e6;
+            z-index: 1;
+        }
+        .step-item.active:not(:last-child):after,
+        .step-item.completed:not(:last-child):after {
+            background-color: #0d6efd;
+        }
+        .step-circle {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        .step-item.active .step-circle {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            color: white;
+        }
+        .step-item.completed .step-circle {
+            background-color: #198754;
+            border-color: #198754;
+            color: white;
+        }
+        .step-title {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        .step-item.active .step-title,
+        .step-item.completed .step-title {
+            color: #212529;
+            font-weight: 500;
+        }
+        .form-floating input {
+            padding-left: 40px !important;
+        }
+        .form-floating i {
+            position: absolute;
+            left: 15px;
+            top: 18px;
+            z-index: 10;
+            color: #6c757d;
+        }
+        @media (max-width: 767.98px) {
+            .logo-section {
+                border-radius: 0.5rem 0.5rem 0 0;
+                padding: 2rem;
+                display: none; /* Hide on mobile */
+            }
+            .auth-section {
+                padding: 2rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-light">
-    <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white text-center">
-                        <h3>Medical AI Assistant</h3>
-                        <p class="mb-0">Create a new account</p>
+    <div class="register-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-10">
+                    <div class="card shadow-lg">
+                        <div class="row g-0">
+                            <!-- Logo and information section -->
+                            <div class="col-md-5 logo-section d-none d-md-flex">
+                                <div class="text-center mb-4">
+                                    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Medical AI Logo" class="img-fluid mb-3" style="max-width: 120px;">
+                                    <h2 class="fw-bold text-primary">Medical AI Assistant</h2>
+                                    <p class="text-muted">Your personal healthcare companion powered by artificial intelligence</p>
+                                </div>
+                                <div class="mt-5">
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                            <i class="bi bi-shield-check"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">Private & Secure</h6>
+                                            <small class="text-muted">Your data is protected</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <div class="bg-success text-white rounded-circle p-2 me-3">
+                                            <i class="bi bi-person-check"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">Personalized Care</h6>
+                                            <small class="text-muted">Tailored to your needs</small>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-info text-white rounded-circle p-2 me-3">
+                                            <i class="bi bi-graph-up"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0">Health Analytics</h6>
+                                            <small class="text-muted">Track your progress</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Registration form section -->
+                            <div class="col-md-7 auth-section">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h3 class="fw-bold">Create Account</h3>
+                                    <div>
+                                        <a href="/" class="btn btn-sm btn-outline-secondary me-2">
+                                            <i class="bi bi-house-door"></i> Home
+                                        </a>
+                                        <a href="/login" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-box-arrow-in-right"></i> Sign In
+                                        </a>
+                                    </div>
+                                </div>
+                                
+                                {% if error %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                    {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="steps-indicator">
+                                    <div class="step-item active" data-step="1">
+                                        <div class="step-circle">1</div>
+                                        <div class="step-title">Account</div>
+                                    </div>
+                                    <div class="step-item" data-step="2">
+                                        <div class="step-circle">2</div>
+                                        <div class="step-title">Profile</div>
+                                    </div>
+                                    <div class="step-item" data-step="3">
+                                        <div class="step-circle">3</div>
+                                        <div class="step-title">Verification</div>
+                                    </div>
+                                </div>
+                                
+                                <form id="register-form" method="post" action="/register">
+                                    <!-- Step 1: Account Information -->
+                                    <div class="form-step active" id="step-1">
+                                        <div class="mb-4">
+                                            <h5>Account Information</h5>
+                                            <p class="text-muted small">Create your login credentials</p>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-envelope"></i>
+                                            <input type="email" class="form-control" id="email" name="email" placeholder="Email Address" required>
+                                            <label for="email">Email Address</label>
+                                            <div class="invalid-feedback" id="email-feedback"></div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-person"></i>
+                                            <input type="text" class="form-control" id="username" name="username" placeholder="Username" required>
+                                            <label for="username">Username</label>
+                                            <div class="invalid-feedback" id="username-feedback"></div>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-lock"></i>
+                                            <input type="password" class="form-control" id="password" name="password" placeholder="Password" required>
+                                            <label for="password">Password</label>
+                                            <div class="progress mt-1" style="height: 5px;">
+                                                <div class="progress-bar bg-danger" role="progressbar" id="password-strength" style="width: 0%"></div>
+                                            </div>
+                                            <small class="text-muted">Password must be at least 8 characters with letters, numbers, and special characters</small>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-lock"></i>
+                                            <input type="password" class="form-control" id="confirm-password" name="confirm_password" placeholder="Confirm Password" required>
+                                            <label for="confirm-password">Confirm Password</label>
+                                            <div class="invalid-feedback" id="password-match-feedback">Passwords do not match</div>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-end mt-4">
+                                            <button type="button" class="btn btn-primary" id="next-step-1">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Step 2: Profile Information -->
+                                    <div class="form-step" id="step-2">
+                                        <div class="mb-4">
+                                            <h5>Profile Information</h5>
+                                            <p class="text-muted small">Tell us about yourself</p>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-person-badge"></i>
+                                            <input type="text" class="form-control" id="name" name="name" placeholder="Full Name" required>
+                                            <label for="name">Full Name</label>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="role" class="form-label">Account Type</label>
+                                            <select class="form-select" id="role" name="role" required>
+                                                <option value="patient" selected>Patient - I want to track my health</option>
+                                                <option value="doctor">Doctor - I provide healthcare services</option>
+                                                <option value="specialist">Specialist - I offer specialized medical care</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3 position-relative">
+                                            <i class="bi bi-telephone"></i>
+                                            <input type="tel" class="form-control" id="phone" name="phone" placeholder="Phone Number">
+                                            <label for="phone">Phone Number (Optional)</label>
+                                        </div>
+                                        
+                                        <div class="form-floating mb-3">
+                                            <textarea class="form-control" id="bio" name="bio" placeholder="Tell us about yourself" style="height: 100px"></textarea>
+                                            <label for="bio">Bio (Optional)</label>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mt-4">
+                                            <button type="button" class="btn btn-outline-secondary" id="prev-step-2"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                                            <button type="button" class="btn btn-primary" id="next-step-2">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Step 3: Terms and Verification -->
+                                    <div class="form-step" id="step-3">
+                                        <div class="mb-4">
+                                            <h5>Terms & Verification</h5>
+                                            <p class="text-muted small">Review and confirm</p>
+                                        </div>
+                                        
+                                        <div class="mb-4 p-3 bg-light rounded">
+                                            <h6 class="mb-2">Account Summary</h6>
+                                            <div class="row mb-2">
+                                                <div class="col-5 text-muted">Email:</div>
+                                                <div class="col-7 fw-semibold" id="summary-email"></div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-5 text-muted">Username:</div>
+                                                <div class="col-7 fw-semibold" id="summary-username"></div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-5 text-muted">Full Name:</div>
+                                                <div class="col-7 fw-semibold" id="summary-name"></div>
+                                            </div>
+                                            <div class="row mb-2">
+                                                <div class="col-5 text-muted">Account Type:</div>
+                                                <div class="col-7 fw-semibold" id="summary-role"></div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="terms" name="terms" required>
+                                            <label class="form-check-label" for="terms">
+                                                I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="mb-3 form-check">
+                                            <input type="checkbox" class="form-check-input" id="newsletter" name="newsletter">
+                                            <label class="form-check-label" for="newsletter">
+                                                Send me updates about health tips and new features (optional)
+                                            </label>
+                                        </div>
+                                        
+                                        <div class="d-flex justify-content-between mt-4">
+                                            <button type="button" class="btn btn-outline-secondary" id="prev-step-3"><i class="bi bi-arrow-left me-1"></i> Back</button>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-check-circle me-1"></i> Complete Registration
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                                
+                                <div class="social-login">
+                                    <p class="text-center mb-3">Or sign up with</p>
+                                    <div class="row g-2">
+                                        <div class="col-sm-6">
+                                            <a href="/auth/google" class="btn btn-outline-danger social-btn">
+                                                <i class="bi bi-google"></i> Google
+                                            </a>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <a href="/auth/facebook" class="btn btn-outline-primary social-btn">
+                                                <i class="bi bi-facebook"></i> Facebook
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-center mt-4">
+                                    Already have an account? <a href="/login" class="fw-bold text-decoration-none">Sign In</a>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body p-4">
-                        {% if error %}
-                        <div class="alert alert-danger">{{ error }}</div>
-                        {% endif %}
-                        
-                        <form method="post" action="/register">
-                            <div class="mb-3">
-                                <label for="name" class="form-label">Full Name</label>
-                                <input type="text" class="form-control" id="name" name="name" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="role" class="form-label">Role</label>
-                                <select class="form-select" id="role" name="role">
-                                    <option value="patient" selected>Patient</option>
-                                    <option value="doctor">Doctor</option>
-                                    <option value="specialist">Specialist</option>
-                                </select>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary">Register</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="card-footer text-center">
-                        <p class="mb-0">Already have an account? <a href="/login">Login here</a></p>
-                    </div>
+                    
+                    <p class="text-center text-muted mt-4">
+                        <small>© 2025 Medical AI Assistant. All rights reserved.</small>
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Variables
+            const form = document.getElementById('register-form');
+            const steps = document.querySelectorAll('.form-step');
+            const stepIndicators = document.querySelectorAll('.step-item');
+            
+            const nextBtn1 = document.getElementById('next-step-1');
+            const nextBtn2 = document.getElementById('next-step-2');
+            const prevBtn2 = document.getElementById('prev-step-2');
+            const prevBtn3 = document.getElementById('prev-step-3');
+            
+            const email = document.getElementById('email');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirm-password');
+            const termsCheckbox = document.getElementById('terms');
+            
+            // Password strength meter
+            password.addEventListener('input', function() {
+                const passwordValue = this.value;
+                const strengthBar = document.getElementById('password-strength');
+                let strength = 0;
+                
+                if (passwordValue.length >= 8) strength += 25;
+                if (passwordValue.match(/[a-z]/) && passwordValue.match(/[A-Z]/)) strength += 25;
+                if (passwordValue.match(/\d/)) strength += 25;
+                if (passwordValue.match(/[\W_]/)) strength += 25;
+                
+                strengthBar.style.width = strength + '%';
+                
+                if (strength <= 25) {
+                    strengthBar.className = 'progress-bar bg-danger';
+                } else if (strength <= 50) {
+                    strengthBar.className = 'progress-bar bg-warning';
+                } else if (strength <= 75) {
+                    strengthBar.className = 'progress-bar bg-info';
+                } else {
+                    strengthBar.className = 'progress-bar bg-success';
+                }
+            });
+            
+            // Password confirmation
+            confirmPassword.addEventListener('input', function() {
+                if (this.value !== password.value) {
+                    this.classList.add('is-invalid');
+                    document.getElementById('password-match-feedback').style.display = 'block';
+                } else {
+                    this.classList.remove('is-invalid');
+                    document.getElementById('password-match-feedback').style.display = 'none';
+                }
+            });
+            
+            // Step navigation functions
+            function goToStep(stepNumber) {
+                steps.forEach(step => step.classList.remove('active'));
+                document.getElementById(`step-${stepNumber}`).classList.add('active');
+                
+                // Update indicators
+                stepIndicators.forEach(indicator => {
+                    indicator.classList.remove('active', 'completed');
+                    
+                    const indicatorStep = parseInt(indicator.dataset.step);
+                    if (indicatorStep === stepNumber) {
+                        indicator.classList.add('active');
+                    } else if (indicatorStep < stepNumber) {
+                        indicator.classList.add('completed');
+                    }
+                });
+            }
+            
+            // Step 1 validation
+            nextBtn1.addEventListener('click', function() {
+                let isValid = true;
+                
+                // Email validation
+                if (!email.value || !email.checkValidity()) {
+                    email.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    email.classList.remove('is-invalid');
+                }
+                
+                // Username validation
+                if (!username.value || username.value.length < 3) {
+                    username.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    username.classList.remove('is-invalid');
+                }
+                
+                // Password validation
+                if (!password.value || password.value.length < 8) {
+                    password.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    password.classList.remove('is-invalid');
+                }
+                
+                // Password confirmation
+                if (confirmPassword.value !== password.value) {
+                    confirmPassword.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    confirmPassword.classList.remove('is-invalid');
+                }
+                
+                if (isValid) {
+                    goToStep(2);
+                }
+            });
+            
+            // Step 2 navigation
+            prevBtn2.addEventListener('click', function() {
+                goToStep(1);
+            });
+            
+            nextBtn2.addEventListener('click', function() {
+                // Validate name field
+                const name = document.getElementById('name');
+                if (!name.value) {
+                    name.classList.add('is-invalid');
+                    return;
+                } else {
+                    name.classList.remove('is-invalid');
+                }
+                
+                // Update summary
+                document.getElementById('summary-email').textContent = email.value;
+                document.getElementById('summary-username').textContent = username.value;
+                document.getElementById('summary-name').textContent = name.value;
+                
+                const role = document.getElementById('role');
+                const roleText = role.options[role.selectedIndex].text;
+                document.getElementById('summary-role').textContent = roleText;
+                
+                goToStep(3);
+            });
+            
+            // Step 3 navigation
+            prevBtn3.addEventListener('click', function() {
+                goToStep(2);
+            });
+            
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                if (!termsCheckbox.checked) {
+                    e.preventDefault();
+                    termsCheckbox.classList.add('is-invalid');
+                    return false;
+                }
+                
+                // If all validations pass, form will submit normally
+            });
+        });
+    </script>
 </body>
 </html> 

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help - Medical AI Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <div class="container py-4">
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h4><i class="fas fa-question-circle me-2"></i>Help & User Guide</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>This help guide provides information on how to use the Medical AI Assistant application effectively.
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-lg-3">
+                                <div class="nav flex-column nav-pills me-3" id="help-tab" role="tablist" aria-orientation="vertical">
+                                    <button class="nav-link active" id="getting-started-tab" data-bs-toggle="pill" data-bs-target="#getting-started" type="button" role="tab">Getting Started</button>
+                                    <button class="nav-link" id="dashboard-tab" data-bs-toggle="pill" data-bs-target="#dashboard-help" type="button" role="tab">Dashboard</button>
+                                    <button class="nav-link" id="medications-tab" data-bs-toggle="pill" data-bs-target="#medications-help" type="button" role="tab">Medication Management</button>
+                                    <button class="nav-link" id="chatbot-tab" data-bs-toggle="pill" data-bs-target="#chatbot-help" type="button" role="tab">AI Chatbot</button>
+                                    <button class="nav-link" id="features-tab" data-bs-toggle="pill" data-bs-target="#features-help" type="button" role="tab">Advanced Features</button>
+                                    <button class="nav-link" id="faq-tab" data-bs-toggle="pill" data-bs-target="#faq-help" type="button" role="tab">FAQs</button>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="tab-content" id="help-tab-content">
+                                    <div class="tab-pane fade show active" id="getting-started" role="tabpanel">
+                                        <h4>Getting Started with Medical AI Assistant</h4>
+                                        <p>Welcome to the Medical AI Assistant, your personal health management and medical information tool.</p>
+
+                                        <h5 class="mt-4">Overview</h5>
+                                        <p>The Medical AI Assistant provides several key features:</p>
+                                        <ul>
+                                            <li><strong>Dashboard</strong> - View your health metrics, medication adherence, and upcoming activities</li>
+                                            <li><strong>Medication Management</strong> - Track your medications and record when they're taken</li>
+                                            <li><strong>AI Chatbot</strong> - Ask medical questions and get AI-powered responses</li>
+                                            <li><strong>Symptom Analysis</strong> - Describe symptoms to get potential diagnoses</li>
+                                            <li><strong>Treatment Information</strong> - Learn about treatment options for medical conditions</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Navigation</h5>
+                                        <p>Use the navigation bar at the top of the page to access different features:</p>
+                                        <ul>
+                                            <li><strong>Home</strong> - Return to the welcome page</li>
+                                            <li><strong>Dashboard</strong> - View your health overview</li>
+                                            <li><strong>Chatbot</strong> - Interact with the AI assistant</li>
+                                            <li><strong>Medications</strong> - Manage your medications</li>
+                                            <li><strong>Tools</strong> - Access additional features like document upload and settings</li>
+                                        </ul>
+
+                                        <div class="alert alert-warning mt-4" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Medical Disclaimer:</strong> This application provides information for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with qualified healthcare providers for medical concerns.
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="dashboard-help" role="tabpanel">
+                                        <h4>Using the Dashboard</h4>
+                                        <p>The dashboard provides a comprehensive overview of your health metrics, medication adherence, and upcoming activities.</p>
+
+                                        <h5 class="mt-4">Key Components</h5>
+                                        <ul>
+                                            <li><strong>Health Overview</strong> - Shows the current date and your basic health status</li>
+                                            <li><strong>Stats Cards</strong> - Quick view of your medication adherence, blood pressure, active medications, and upcoming activities</li>
+                                            <li><strong>Blood Pressure History</strong> - Chart showing your blood pressure trends over time</li>
+                                            <li><strong>Medication Adherence</strong> - Visual representation of your medication adherence rate</li>
+                                            <li><strong>Upcoming Activities</strong> - List of scheduled health-related activities</li>
+                                            <li><strong>Current Medications</strong> - Overview of your active medications with quick actions</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Actions You Can Take</h5>
+                                        <ul>
+                                            <li>Mark medications as taken directly from the dashboard</li>
+                                            <li>View medication details by clicking the info button</li>
+                                            <li>See upcoming appointments and activities</li>
+                                            <li>Track your medication adherence progress</li>
+                                            <li>Monitor changes in your health metrics over time</li>
+                                        </ul>
+
+                                        <div class="alert alert-info mt-4" role="alert">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            <strong>Tip:</strong> Use the dashboard daily to keep track of your medications and monitor your health status effectively.
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="medications-help" role="tabpanel">
+                                        <h4>Medication Management</h4>
+                                        <p>The Medication Management page helps you track your medications, set schedules, and monitor your adherence.</p>
+
+                                        <h5 class="mt-4">Main Features</h5>
+                                        <ul>
+                                            <li><strong>Current Medications Table</strong> - Lists all your active medications</li>
+                                            <li><strong>Medication Details</strong> - View comprehensive information about each medication</li>
+                                            <li><strong>Adherence Statistics</strong> - Visual representation of your medication adherence</li>
+                                            <li><strong>Medication Schedule</strong> - Calendar view of upcoming medication doses</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">How to Add a Medication</h5>
+                                        <ol>
+                                            <li>Click the "Add Medication" button at the top of the page</li>
+                                            <li>Fill in the medication details (name, dosage, frequency, start date)</li>
+                                            <li>Add optional information like end date and notes</li>
+                                            <li>Set reminders if needed</li>
+                                            <li>Click "Save Medication" to add it to your list</li>
+                                        </ol>
+
+                                        <h5 class="mt-4">Managing Medications</h5>
+                                        <ul>
+                                            <li><strong>Mark as Taken</strong> - Click the checkmark button to record that you've taken a medication</li>
+                                            <li><strong>View Details</strong> - Click the eye button to see comprehensive information about a medication</li>
+                                            <li><strong>Delete</strong> - Remove medications you no longer take</li>
+                                        </ul>
+
+                                        <div class="alert alert-info mt-4" role="alert">
+                                            <i class="fas fa-lightbulb me-2"></i>
+                                            <strong>Tip:</strong> Set up reminders for your medications to improve your adherence rate.
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="chatbot-help" role="tabpanel">
+                                        <h4>AI Chatbot</h4>
+                                        <p>The AI Chatbot allows you to ask medical questions and get AI-powered responses.</p>
+
+                                        <h5 class="mt-4">How to Use the Chatbot</h5>
+                                        <ol>
+                                            <li>Type your medical question in the input field</li>
+                                            <li>Click the "Send" button or press Enter</li>
+                                            <li>The AI will process your question and provide a response</li>
+                                            <li>You can ask follow-up questions to get more specific information</li>
+                                        </ol>
+
+                                        <h5 class="mt-4">AI Provider Selection</h5>
+                                        <p>You can choose from different AI providers:</p>
+                                        <ul>
+                                            <li><strong>BlackboxAI</strong> (Default) - General-purpose medical AI</li>
+                                            <li><strong>OpenAI</strong> - Advanced language model for detailed responses</li>
+                                            <li><strong>Google Gemini</strong> - Google's medical knowledge model</li>
+                                            <li><strong>Cohere</strong> - Specialized medical information model</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Additional Features</h5>
+                                        <ul>
+                                            <li><strong>Voice Input</strong> - Click the microphone button to speak your question</li>
+                                            <li><strong>Visualizations</strong> - Check the "Include Visualization" option to get charts when applicable</li>
+                                            <li><strong>Voice Response</strong> - Enable text-to-speech to have the AI read responses aloud</li>
+                                        </ul>
+
+                                        <div class="alert alert-warning mt-4" role="alert">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>
+                                            <strong>Note:</strong> The AI provides information for educational purposes only and is not a substitute for professional medical advice.
+                                        </div>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="features-help" role="tabpanel">
+                                        <h4>Advanced Features</h4>
+                                        <p>The Medical AI Assistant includes several advanced features to help you manage your health.</p>
+
+                                        <h5 class="mt-4">Document Repository</h5>
+                                        <p>Upload medical documents to enhance the AI's knowledge:</p>
+                                        <ul>
+                                            <li>Supported formats: PDF, DOCX, TXT</li>
+                                            <li>Maximum file size: 16MB</li>
+                                            <li>Documents are processed to extract medical information</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Image Analysis</h5>
+                                        <p>Upload medical images for AI-assisted analysis:</p>
+                                        <ul>
+                                            <li>Supported formats: JPG, PNG, TIFF, BMP</li>
+                                            <li>Apply various enhancements to improve image quality</li>
+                                            <li>Receive AI interpretation of image metrics</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Voice Interface</h5>
+                                        <p>Interact with the AI using voice commands:</p>
+                                        <ul>
+                                            <li>Record voice input to describe symptoms or ask questions</li>
+                                            <li>Process transcriptions for different types of analysis</li>
+                                            <li>Listen to AI responses through speech synthesis</li>
+                                        </ul>
+
+                                        <h5 class="mt-4">Settings</h5>
+                                        <p>Customize the application to your preferences:</p>
+                                        <ul>
+                                            <li><strong>Theme</strong> - Choose between light, dark, or system theme</li>
+                                            <li><strong>Language</strong> - Set your preferred language for the interface</li>
+                                            <li><strong>Notifications</strong> - Configure how you receive medication reminders</li>
+                                            <li><strong>Privacy</strong> - Manage your data and sharing preferences</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="tab-pane fade" id="faq-help" role="tabpanel">
+                                        <h4>Frequently Asked Questions</h4>
+
+                                        <div class="accordion" id="faqAccordion">
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="faq1">
+                                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1Collapse">
+                                                        Is my medical data kept private?
+                                                    </button>
+                                                </h2>
+                                                <div id="faq1Collapse" class="accordion-collapse collapse show" aria-labelledby="faq1" data-bs-parent="#faqAccordion">
+                                                    <div class="accordion-body">
+                                                        Yes, all your medical data is stored locally on your device or server. No data is sent to external servers unless explicitly configured. For more information, please see our <a href="/privacy">Privacy Policy</a>.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="faq2">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2Collapse">
+                                                        How accurate is the AI medical advice?
+                                                    </button>
+                                                </h2>
+                                                <div id="faq2Collapse" class="accordion-collapse collapse" aria-labelledby="faq2" data-bs-parent="#faqAccordion">
+                                                    <div class="accordion-body">
+                                                        The AI provides information for educational purposes only and is not a substitute for professional medical advice. While it uses advanced medical knowledge, it should not be used for diagnosis or treatment decisions without consulting a healthcare provider.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="faq3">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3Collapse">
+                                                        Can I export my medication data?
+                                                    </button>
+                                                </h2>
+                                                <div id="faq3Collapse" class="accordion-collapse collapse" aria-labelledby="faq3" data-bs-parent="#faqAccordion">
+                                                    <div class="accordion-body">
+                                                        Yes, you can export your medication data as a PDF report. Go to the Medications page and click on the "Download Report" button to generate a comprehensive medication report that you can share with your healthcare provider.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="faq4">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4Collapse">
+                                                        How do I set up medication reminders?
+                                                    </button>
+                                                </h2>
+                                                <div id="faq4Collapse" class="accordion-collapse collapse" aria-labelledby="faq4" data-bs-parent="#faqAccordion">
+                                                    <div class="accordion-body">
+                                                        When adding a new medication, check the "Set reminders" option and specify your preferred reminder times. You can choose to receive notifications via email or in-app notifications depending on your settings.
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="faq5">
+                                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5Collapse">
+                                                        Can I use this application offline?
+                                                    </button>
+                                                </h2>
+                                                <div id="faq5Collapse" class="accordion-collapse collapse" aria-labelledby="faq5" data-bs-parent="#faqAccordion">
+                                                    <div class="accordion-body">
+                                                        The application requires an internet connection for AI functionality like symptom analysis and treatment information. However, basic features like viewing your medications and health metrics may work offline if you've previously accessed them.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-lg-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-info text-white">
+                        <h4><i class="fas fa-headset me-2"></i>Need More Help?</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="d-inline-block p-4 bg-light rounded-circle mb-3">
+                                    <i class="fas fa-book fa-3x text-info"></i>
+                                </div>
+                                <h5>Documentation</h5>
+                                <p>Read our comprehensive user guide and documentation.</p>
+                                <a href="#" class="btn btn-outline-info">View Documentation</a>
+                            </div>
+                            <div class="col-md-4 text-center mb-3 mb-md-0">
+                                <div class="d-inline-block p-4 bg-light rounded-circle mb-3">
+                                    <i class="fas fa-envelope fa-3x text-info"></i>
+                                </div>
+                                <h5>Contact Support</h5>
+                                <p>Email our support team for personalized assistance.</p>
+                                <a href="mailto:support@medicalai.example.com" class="btn btn-outline-info">Email Support</a>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="d-inline-block p-4 bg-light rounded-circle mb-3">
+                                    <i class="fas fa-comments fa-3x text-info"></i>
+                                </div>
+                                <h5>Community Forum</h5>
+                                <p>Join our community forum to connect with other users.</p>
+                                <a href="#" class="btn btn-outline-info">Visit Forum</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container text-center">
+            <span class="text-muted">© 2024 Medical AI Assistant. All rights reserved.</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

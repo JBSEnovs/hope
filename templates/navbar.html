@@ -11,7 +11,6 @@
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == url_for('index') %}active{% endif %}" href="{{ url_for('index') }}">Home</a>
                 </li>
-                {% if current_user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.path == url_for('dashboard') %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
                 </li>
@@ -31,35 +30,21 @@
                         <li><a class="dropdown-item" href="#"><i class="fas fa-upload me-2"></i>Document Upload</a></li>
                         <li><a class="dropdown-item" href="#"><i class="fas fa-image me-2"></i>Image Analysis</a></li>
                         <li><a class="dropdown-item" href="{{ url_for('language_settings') }}"><i class="fas fa-language me-2"></i>Language Settings</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="fas fa-cog me-2"></i>Settings</a></li>
                     </ul>
                 </li>
-                {% endif %}
             </ul>
             <ul class="navbar-nav ms-auto">
-                {% if current_user.is_authenticated %}
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user-circle me-1"></i>{{ current_user.name or current_user.username }}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
-                    </ul>
-                </li>
-                {% else %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.path == url_for('login') %}active{% endif %}" href="{{ url_for('login') }}">
-                        <i class="fas fa-sign-in-alt me-1"></i>Login
+                    <a class="nav-link {% if request.path == url_for('help_page') %}active{% endif %}" href="{{ url_for('help_page') }}">
+                        <i class="fas fa-question-circle me-1"></i>Help
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.path == url_for('register') %}active{% endif %}" href="{{ url_for('register') }}">
-                        <i class="fas fa-user-plus me-1"></i>Register
+                    <a class="nav-link {% if request.path == url_for('about_page') %}active{% endif %}" href="{{ url_for('about_page') }}">
+                        <i class="fas fa-info-circle me-1"></i>About
                     </a>
                 </li>
-                {% endif %}
             </ul>
         </div>
     </div>

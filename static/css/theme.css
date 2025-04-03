@@ -1,0 +1,271 @@
+/**
+ * Medical AI Assistant - Theme Management
+ * This file manages the different visual themes for the application
+ */
+
+/* Base Styles */
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --info-color: #0dcaf0;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --body-bg: #ffffff;
+    --body-color: #212529;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.125);
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --transition-speed: 0.3s;
+    --font-size-base: 1rem;
+}
+
+/* Theme: Light (Default) */
+body[data-theme="light"] {
+    --body-bg: #ffffff;
+    --body-color: #212529;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.125);
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+}
+
+/* Theme: Dark */
+body[data-theme="dark"] {
+    --body-bg: #2c3034;
+    --body-color: #e6e6e6;
+    --card-bg: #343a40;
+    --card-border: rgba(255, 255, 255, 0.1);
+    --input-bg: #212529;
+    --input-border: #495057;
+}
+
+/* System Theme */
+@media (prefers-color-scheme: dark) {
+    body[data-theme="system"] {
+        --body-bg: #2c3034;
+        --body-color: #e6e6e6;
+        --card-bg: #343a40;
+        --card-border: rgba(255, 255, 255, 0.1);
+        --input-bg: #212529;
+        --input-border: #495057;
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    body[data-theme="system"] {
+        --body-bg: #ffffff;
+        --body-color: #212529;
+        --card-bg: #ffffff;
+        --card-border: rgba(0, 0, 0, 0.125);
+        --input-bg: #ffffff;
+        --input-border: #ced4da;
+    }
+}
+
+/* Color Schemes */
+body[data-color-scheme="blue"] {
+    --primary-color: #0d6efd;
+}
+
+body[data-color-scheme="green"] {
+    --primary-color: #198754;
+}
+
+body[data-color-scheme="purple"] {
+    --primary-color: #6f42c1;
+}
+
+body[data-color-scheme="orange"] {
+    --primary-color: #fd7e14;
+}
+
+body[data-color-scheme="teal"] {
+    --primary-color: #20c997;
+}
+
+/* Font Size */
+body[data-font-size="small"] {
+    --font-size-base: 0.875rem;
+}
+
+body[data-font-size="medium"] {
+    --font-size-base: 1rem;
+}
+
+body[data-font-size="large"] {
+    --font-size-base: 1.125rem;
+}
+
+body[data-font-size="x-large"] {
+    --font-size-base: 1.25rem;
+}
+
+/* Accessibility - High Contrast */
+body.high-contrast {
+    --primary-color: #0000ff;
+    --body-bg: #ffffff;
+    --body-color: #000000;
+    --card-bg: #ffffff;
+    --card-border: #000000;
+    --input-bg: #ffffff;
+    --input-border: #000000;
+}
+
+body.high-contrast[data-theme="dark"] {
+    --primary-color: #ffff00;
+    --body-bg: #000000;
+    --body-color: #ffffff;
+    --card-bg: #000000;
+    --card-border: #ffffff;
+    --input-bg: #000000;
+    --input-border: #ffffff;
+}
+
+/* Accessibility - Reduce Motion */
+body.reduce-motion * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Apply Variables to Elements */
+body {
+    background-color: var(--body-bg);
+    color: var(--body-color);
+    font-size: var(--font-size-base);
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.form-control, .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--body-color);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed), color var(--transition-speed);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--input-bg);
+    color: var(--body-color);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.list-group-item {
+    background-color: var(--card-bg);
+    color: var(--body-color);
+    border-color: var(--card-border);
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.list-group-item-action:hover {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-color) !important;
+}
+
+/* Update navbar colors based on theme and color scheme */
+.navbar-dark {
+    background-color: var(--primary-color) !important;
+}
+
+.dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+.dropdown-item {
+    color: var(--body-color);
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: rgba(var(--primary-color-rgb), 0.1);
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    color: var(--body-color);
+}
+
+/* Fix for Firefox */
+@-moz-document url-prefix() {
+    .form-select {
+        background-color: var(--input-bg);
+        color: var(--body-color);
+    }
+}
+
+/* Set primary color RGB variable for alpha operations */
+:root {
+    --primary-color-rgb: 13, 110, 253; /* Default blue */
+}
+
+body[data-color-scheme="green"] {
+    --primary-color-rgb: 25, 135, 84;
+}
+
+body[data-color-scheme="purple"] {
+    --primary-color-rgb: 111, 66, 193;
+}
+
+body[data-color-scheme="orange"] {
+    --primary-color-rgb: 253, 126, 20;
+}
+
+body[data-color-scheme="teal"] {
+    --primary-color-rgb: 32, 201, 151;
+}
+
+/* Footer Styles */
+.footer {
+    background-color: var(--card-bg) !important;
+    color: var(--body-color);
+    border-top: 1px solid var(--card-border);
+}
+
+.text-muted {
+    color: var(--secondary-color) !important;
+}
+
+/* Screen reader optimizations */
+body[data-screen-reader="true"] :focus {
+    outline: 3px solid var(--primary-color) !important;
+    outline-offset: 2px !important;
+}
+
+body[data-screen-reader="true"] .btn:focus,
+body[data-screen-reader="true"] .form-control:focus,
+body[data-screen-reader="true"] .form-select:focus,
+body[data-screen-reader="true"] .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.5) !important;
+} 
