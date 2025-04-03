@@ -686,17 +686,27 @@ def blackbox_query():
         if conversation_id:
             # Continue existing conversation
             app.logger.info(f'Continuing conversation {conversation_id[:8]}...')
-            result = medical_agent.blackbox_ai.continue_conversation(conversation_id, query).get('response', '')
+            result = medical_agent.blackbox_ai.continue_conversation(conversation_id, query)
+            if isinstance(result, dict):
+                response_text = result.get('response', '')
+                conversation_id = result.get('conversation_id', conversation_id)
+            else:
+                response_text = result
         else:
             # Start new conversation
             app.logger.info('Starting new conversation')
             result = medical_agent.blackbox_ai.chat(query)
-            
-            # Extract conversation ID from result if available
-            conversation_id = medical_agent.blackbox_ai.conversations.keys()[-1] if medical_agent.blackbox_ai.conversations else None
+            if isinstance(result, dict):
+                response_text = result.get('response', '')
+                conversation_id = result.get('conversation_id')
+            else:
+                response_text = result
+                # Get the most recent conversation ID
+                conversation_ids = list(medical_agent.blackbox_ai.conversations.keys())
+                conversation_id = conversation_ids[-1] if conversation_ids else None
             
         return jsonify({
-            "response": result, 
+            "response": response_text, 
             "conversation_id": conversation_id
         })
     except Exception as e:

@@ -4,7 +4,7 @@ A comprehensive medical information assistant powered by BlackboxAI, designed to
 
 ## Features
 
-- **AI-Powered Medical Information**: Leverages BlackboxAI's API to provide educational information about medical conditions, treatments, and medications
+- **AI-Powered Medical Information**: Directly integrates with BlackboxAI's API to provide educational information about medical conditions, treatments, and medications
 - **Multiple AI Models Support**: Access to several AI models through the BlackboxAI API, including:
   - gpt-4o
   - claude-sonnet-3.5
@@ -13,6 +13,7 @@ A comprehensive medical information assistant powered by BlackboxAI, designed to
 - **Dashboard**: Visualize health metrics, track medication adherence, and view upcoming health activities
 - **Medication Management**: Track medications, dosages, schedules, and adherence history
 - **Responsive Design**: Modern, mobile-friendly interface
+- **Conversation Memory**: Maintains chat history for natural, contextual conversations
 
 ## Screenshots
 
@@ -49,16 +50,31 @@ python minimal_app.py
 
 ## BlackboxAI Integration
 
-This application integrates with the [BlackboxAI API](https://github.com/notsopreety/blackbox-api) to provide AI-powered medical information. The integration:
+This application directly integrates with the BlackboxAI API to provide AI-powered medical information. The integration was built based on [BlackboxAI API](https://github.com/notsopreety/blackbox-api) implementation, but adapted for native Python usage.
 
-- Supports multiple AI models including GPT-4o, Claude, and Gemini Pro
-- Maintains conversation context for natural interactions
-- Provides fallback responses when the API is unavailable
-- Formats medical information with appropriate medical disclaimers
+### Key Integration Features:
+
+- **Direct API Access**: Makes direct API calls to BlackboxAI's service without middleware
+- **Conversation Management**: Maintains conversation history using unique IDs for natural back-and-forth dialogue
+- **Multi-Model Support**: Dynamically switch between AI models:
+  - `gpt-4o`: Most advanced GPT model from OpenAI
+  - `claude-sonnet-3.5`: Anthropic's powerful model for medical information
+  - `gemini-pro`: Google's comprehensive AI model
+  - `blackboxai`: Free tier model with good capabilities
+- **Robust Error Handling**: Provides fallback responses for network issues or service unavailability
+- **Response Cleaning**: Automatically removes promotional text from BlackboxAI responses
+
+### Medical Prompt Engineering
+
+The application uses carefully designed medical prompts that:
+- Request structured, educational information about conditions and treatments
+- Include appropriate medical disclaimers with all responses
+- Format information with clear sections for symptom analysis, treatment options, and research
+- Extract data that can be used for visualizations
 
 ### API Usage
 
-The application uses BlackboxAI's API for:
+The application uses BlackboxAI's capabilities for:
 - Symptom analysis and potential condition identification
 - Treatment options and recommendations
 - Medical research and disease information
@@ -72,7 +88,7 @@ When BlackboxAI's API is unavailable, the application provides pre-defined respo
 
 - `minimal_app.py`: Main Flask application
 - `agents/`: AI and functionality modules
-  - `blackbox_ai.py`: BlackboxAI API integration
+  - `blackbox_ai.py`: BlackboxAI API direct integration
   - `medical_agent.py`: Medical functionality and prompts
 - `static/`: CSS, JavaScript, and images
 - `templates/`: HTML templates for the web interface
